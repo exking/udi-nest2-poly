@@ -1,0 +1,23 @@
+{
+    "name": "Nest2",
+    "docs": "https://github.com/exking/udi-nest2-poly",
+    "type": "python3",
+    "executable": "nest2.py",
+    "install": "install.sh",
+    "description": "Nest products control",
+    "notice": "\"Nest\" is trademarked, see http://www.nest.com for more information. This Node Server is neither developed nor endorsed by Nest or Google.",
+    "shortPoll": "5",
+    "longPoll": "60",
+    "api_client": "1e76b652-d7bf-40a7-8758-ab6db2f39065",
+    "api_key": "LA9FXF7p2eIteSESjCpGCDLwT",
+    "credits": [
+        {
+            "title": "udi-nest2-poly: Nest products control",
+            "author": "Andrey Pevnev (xKing)",
+            "version": "0.0.1",
+            "date": "December 27, 2017",
+            "source": "https://github.com/exking/udi-nest2-poly",
+            "license": "https://raw.githubusercontent.com/exking/udi-nest2-poly/master/LICENSE"
+        }
+    ]
+}

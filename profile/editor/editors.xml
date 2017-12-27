@@ -1,0 +1,61 @@
+<editors>
+  <!-- Boolean -->
+  <editor id="bool">
+      <range uom="2" subset="0,1" />
+  </editor>
+
+  <!-- Temperature F -->
+  <editor id="TEMP_F">
+    <range uom="17" min="0" max="120" step="1" prec="0" />
+  </editor>
+
+  <!-- Temperature C -->
+  <editor id="TEMP_C">
+    <range uom="4" min="-18" max="50" step="0.5" prec="1" />
+  </editor>
+
+  <!-- Setpoint C -->
+  <editor id="SP_C">
+    <range uom="4" min="9" max="32" step="0.5" prec="1"/>
+  </editor>
+
+  <!-- Setpoint F -->
+  <editor id="SP_F">
+    <range uom="17" min="50" max="90" step="1" prec="0" />
+  </editor>
+
+  <!-- Thermostat Mode -->
+  <editor id="TSTAT_MODE">
+    <range uom="67" subset="0,1,2,3,13" />
+  </editor>
+
+  <!-- Fan Mode -->
+  <editor id="FAN_MODE">
+    <range uom="68" subset="0,1" />
+  </editor>
+
+  <!-- Fan Timer -->
+  <editor id="FAN_TIMER">
+    <range uom="45" subset="15,30,45,60,120,240,480,960" />
+  </editor>
+
+  <!-- Time to target -->
+  <editor id="TOTARGET">
+    <range uom="45" min="0" max="120" />
+  </editor>
+
+  <!-- Thermostat Heating/Cooling State -->
+  <editor id="TSTAT_HCS">
+    <range uom="66" subset="0-3" />
+  </editor>
+
+  <editor id="TSTAT_HUM">
+    <range uom="22" min="0" max="100" />
+  </editor>
+
+  <!-- Home/Away Selector -->
+  <editor id="STR_AWAY">
+    <range uom="25" subset="1-2" nls="AWAY_SEL" />
+  </editor>
+
+</editors>

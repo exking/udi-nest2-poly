@@ -1,0 +1,112 @@
+<nodeDefs>
+<!-- NODE DEF from 5.0 document http://wiki.universal-devices.com/index.php?title=V50_MAIN -->
+  <!-- controller -->
+  <nodeDef id="NEST_CTR" nls="NCTR">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DISCOVER" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+
+  <nodeDef id="NEST_TST_F" nls="NTST">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="CLITEMP" editor="TEMP_F" />
+      <st id="CLISPH" editor="SP_F" />
+      <st id="CLISPC" editor="SP_F" />
+      <st id="CLIMD" editor="TSTAT_MODE" />
+      <st id="CLIFS" editor="FAN_MODE" />
+      <st id="CLIHUM" editor="TSTAT_HUM" />
+      <st id="CLIHCS" editor="TSTAT_HCS" />
+      <st id="GV1" editor="FAN_TIMER" />
+      <st id="GV2" editor="TOTARGET" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="CLISPH">
+          <p id="" editor="SP_F" init="CLISPH" />
+        </cmd>
+        <cmd id="CLISPC">
+          <p id="" editor="SP_F" init="CLISPC" />
+        </cmd>
+        <cmd id="CLIMD">
+          <p id="" editor="TSTAT_MODE" init="CLIMD" />
+        </cmd>
+        <cmd id="CLIFS">
+          <p id="" editor="FAN_MODE" init="CLIFS" />
+        </cmd>
+        <cmd id="SET_TIMER">
+          <p id="" editor="FAN_TIMER" init="GV1" />
+        </cmd>        
+        <cmd id="BRT" />
+        <cmd id="DIM" />
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  
+  <nodeDef id="NEST_TST_C" nls="NTST">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="CLITEMP" editor="TEMP_C" />
+      <st id="CLISPH" editor="SP_C" />
+      <st id="CLISPC" editor="SP_C" />
+      <st id="CLIMD" editor="TSTAT_MODE" />
+      <st id="CLIFS" editor="FAN_MODE" />
+      <st id="CLIHUM" editor="TSTAT_HUM" />
+      <st id="CLIHCS" editor="TSTAT_HCS" />
+      <st id="GV1" editor="FAN_TIMER" />
+      <st id="GV2" editor="TOTARGET" />      
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="CLISPH">
+          <p id="" editor="SP_C" init="CLISPH" />
+        </cmd>
+        <cmd id="CLISPC">
+          <p id="" editor="SP_C" init="CLISPC" />
+        </cmd>
+        <cmd id="CLIMD">
+          <p id="" editor="TSTAT_MODE" init="CLIMD" />
+        </cmd>
+        <cmd id="CLIFS">
+          <p id="" editor="FAN_MODE" init="CLIFS" />
+        </cmd>
+        <cmd id="BRT" />
+        <cmd id="DIM" />
+        <cmd id="QUERY" />
+        <cmd id="SET_TIMER">
+          <p id="" editor="FAN_TIMER" init="GV1" />
+        </cmd>                
+      </accepts>
+    </cmds>
+  </nodeDef>
+  
+  <nodeDef id="NEST_STR" nls="NSTR">
+    <editors />
+    <sts>
+      <st id="ST" editor="STR_AWAY" />
+      <st id="GV0" editor="bool" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="SET_AWAY">
+          <p id="" editor="STR_AWAY" init="ST" />
+        </cmd>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+
+</nodeDefs>

@@ -1,0 +1,37 @@
+# Nest Controller
+ND-NEST_CTR-NAME = Nest Controller
+ND-NEST_CTR-ICON = GenericCtl
+
+CMD-NCTR-DISCOVER-NAME = Re-Discover
+ST-NCTR-ST-NAME = NodeServer Online
+
+ND-NEST_TST_C-NAME = Nest Thermostat C
+ND-NEST_TST_C-ICON = Thermostat
+ND-NEST_TST_F-NAME = Nest Thermostat F
+ND-NEST_TST_F-ICON = Thermostat
+ND-NEST_STR-NAME = Structure
+ND-NEST_STR-ICON = GenericCtl
+
+ST-NTST-ST-NAME = Online
+ST-NTST-CLITEMP-NAME = Ambient Temperature
+ST-NTST-CLISPH-NAME = Heat SetPoint
+ST-NTST-CLISPC-NAME = Cool SetPoint
+ST-NTST-CLIMD-NAME = Mode
+ST-NTST-CLIFS-NAME = Fan Mode
+ST-NTST-CLIHUM-NAME = Humidity
+ST-NTST-CLIHCS-NAME = Heat/Cool State
+ST-NTST-GV1-NAME = Fan Timer
+ST-NTST-GV2-NAME = Time to target
+
+CMD-NTST-BRT-NAME = SetPoint Up
+CMD-NTST-DIM-NAME = SetPoint Down
+CMD-NTST-SET_TIMER-NAME = Set Fan Timer
+CMD-NTST-QUERY-NAME = Query
+
+ST-NSTR-ST-NAME = Away
+ST-NSTR-GV0-NAME = Rush Hour
+
+CMD-NSTR-SET_AWAY-NAME = Set Away To
+
+AWAY_SEL-1 = Home
+AWAY_SEL-2 = Away
