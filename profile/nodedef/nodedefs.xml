@@ -50,8 +50,8 @@
         <cmd id="DIM" />
         <cmd id="QUERY" />
         <cmd id="SET_RANGE">
-          <p id="H" editor="SP_F" />
-          <p id="C" editor="SP_F" />
+          <p id="H" editor="SP_F" init="CLISPH" />
+          <p id="C" editor="SP_F" init="CLISPC" />
         </cmd>
       </accepts>
     </cmds>
@@ -93,8 +93,8 @@
           <p id="" editor="FAN_TIMER" init="GV1" />
         </cmd>
         <cmd id="SET_RANGE">
-          <p id="H" editor="SP_C" />
-          <p id="C" editor="SP_C" />
+          <p id="H" editor="SP_C" init="CLISPH" />
+          <p id="C" editor="SP_C" init="CLISPC" />
         </cmd>
       </accepts>
     </cmds>

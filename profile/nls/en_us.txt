@@ -28,6 +28,10 @@ CMD-NTST-DIM-NAME = SetPoint Down
 CMD-NTST-SET_TIMER-NAME = Set Fan Timer
 CMD-NTST-QUERY-NAME = Query
 CMD-NTST-SET_RANGE-NAME = Set Temperature Range
+CMDP-NTST-SP_C-H-NAME = Heat to
+CMDP-NTST-SP_C-C-NAME = Cool to
+CMDP-NTST-SP_F-H-NAME = Heat to
+CMDP-NTST-SP_F-C-NAME = Cool to
 
 PGM-CMD-NTST-SET_RANGE-FMT = /H// Heat to ${v}/ /C// Cool to ${v}/
 

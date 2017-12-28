@@ -11,6 +11,8 @@ import urllib3
 import sseclient
 from urllib.parse import urlparse
 import certifi
+import time
+import datetime
 
 from converters import id_2_addr
 from node_types import Thermostat, ThermostatC, Structure
@@ -35,50 +37,7 @@ class Controller(polyinterface.Controller):
         
     def start(self):
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
-        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
-
-        if 'token' not in self.polyConfig['customParams']:
-            if cache_file.is_file():
-                LOGGER.info('Attempting to read auth_token from ~/.nest_poly')
-                with cache_file.open() as f:
-                    cache_data = json.load(f)
-                    if 'access_token' in cache_data:
-                        self.auth_token = cache_data['access_token']
-                    f.close()
-            else:
-                LOGGER.debug('Cached token is not found')
-        else:
-            LOGGER.debug('Using auth_token from the database')
-            self.auth_token = self.polyConfig['customParams']['token']
-            
-        if self.auth_token is None:
-            with open('server.json') as sf:
-                server_data = json.load(sf)
-                sf.close()
-            if 'pin' in self.polyConfig['customParams']:
-                LOGGER.debug('PIN code obtained, attempting to get a token')
-                auth_conn = http.client.HTTPSConnection("api.home.nest.com")
-                payload = "code="+self.polyConfig['customParams']['pin']+"&client_id=" + \
-                          server_data['api_client']+"&client_secret="+server_data['api_key']+ \
-                          "&grant_type=authorization_code"
-                headers = { 'content-type': "application/x-www-form-urlencoded" }
-                auth_conn.request("POST", "/oauth2/access_token", payload, headers)
-                res = auth_conn.getresponse()
-                data = json.loads(res.read().decode("utf-8"))
-                auth_conn.close()
-                if 'access_token' in data:
-                    LOGGER.debug('Received authentication token, saving...')
-                    self.auth_token = data['access_token']
-                    with cache_file.open(mode='w') as cf:
-                        json.dump(data, cf)
-                        cf.close()
-                    self.discover()
-                    self._checkStreaming()
-                else:
-                    LOGGER.error('Failed to get auth_token')
-            else:
-                self._pinPrompt(server_data['api_client'])
-        else:
+        if self._getToken():
             self.discover()
             self._checkStreaming()
 
@@ -127,22 +86,20 @@ class Controller(polyinterface.Controller):
             elif event_type == 'auth_revoked':
                 LOGGER.warning('The API authorization has been revoked. {}'.format(event.data))
                 self.auth_token = None
+                client.close()
                 return False
             elif event_type == 'error':
                 LOGGER.error('Error occurred, such as connection closed: {}'.format(event.data))
+                client.close()
                 return False
             else:
-                LOGGER.error('REST Streaming: Unhandled event')
+                LOGGER.error('REST Streaming: Unhandled event {} {}'.format(event_type, event.data))
+                client.close()
                 return False
                 
     def update(self):
         pass
-        
-    def _pinPrompt(self, client_id):    
-        LOGGER.info('Go to https://home.nest.com/login/oauth2?client_id={}&state=poly to authorize. '.format(client_id) + \
-                    'Then enter the code under the Custom Parameters section. ' + \
-                    'Create a key called "pin" with the code as the value, then restart the NodeServer.')
-    
+
     def discover(self, command = None):
         LOGGER.info('Discovering Nest Products...')
         if self.auth_token is None:
@@ -203,6 +160,8 @@ class Controller(polyinterface.Controller):
         self.discovery = False
 
     def getState(self):
+        if not self.auth_token:
+            return False
         headers = {'authorization': "Bearer {0}".format(self.auth_token)}
 
         if self.api_conn is None:
@@ -230,6 +189,8 @@ class Controller(polyinterface.Controller):
         return True
     
     def sendChange(self, url, payload):
+        if not self.auth_token:
+            return False
         if self.api_conn is None:
             LOGGER.info('sendChange: API Connection is not yet active')
             self.api_conn = http.client.HTTPSConnection("developer-api.nest.com")
@@ -259,14 +220,78 @@ class Controller(polyinterface.Controller):
             return True
         LOGGER.warning('Nest API Authentication token will now be revoked')
         auth_conn = http.client.HTTPSConnection("api.home.nest.com")
-        auth_conn.request("DELETE", "/oauth2/access_token/"+self.auth_token)
+        auth_conn.request("DELETE", "/oauth2/access_tokens/"+self.auth_token)
         res = auth_conn.getresponse()
         data = json.loads(res.read().decode("utf-8"))
         LOGGER.info('Delete returned: {}'.format(json.dumps(data)))
         auth_conn.close()
+        self.auth_token = None
         cache_file = Path(join(expanduser("~") + '/.nest_poly'))
         if cache_file.is_file():
             cache_file.unlink()
+
+    def _getToken(self):
+        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
+
+        if 'token' not in self.polyConfig['customParams']:
+            if cache_file.is_file():
+                LOGGER.info('Attempting to read auth_token from ~/.nest_poly')
+                with cache_file.open() as f:
+                    cache_data = json.load(f)
+                    f.close()
+                if 'access_token' in cache_data and 'expires' in cache_data:
+                    ts_now = datetime.datetime.now()
+                    ts_exp = datetime.datetime.strptime(cache_data['expires'], '%Y-%m-%dT%H:%M:%S')
+                    if ts_now < ts_exp:
+                        self.auth_token = cache_data['access_token']
+                        LOGGER.info('Cached token valid until: {}'.format(cache_data['expires']))
+                        return True
+                    else:
+                        LOGGER.error('Cached token has expired')
+                else:
+                    LOGGER.error('Token is not found in the cache file')
+            else:
+                LOGGER.debug('Cached token is not found')
+        else:
+            LOGGER.debug('Using auth_token from the database')
+            self.auth_token = self.polyConfig['customParams']['token']
+            return True
+
+        with open('server.json') as sf:
+            server_data = json.load(sf)
+            sf.close()
+        if 'pin' in self.polyConfig['customParams']:
+            LOGGER.info('PIN code obtained, attempting to get a token')
+            auth_conn = http.client.HTTPSConnection("api.home.nest.com")
+            payload = "code="+self.polyConfig['customParams']['pin']+"&client_id=" + \
+                        server_data['api_client']+"&client_secret="+server_data['api_key']+ \
+                        "&grant_type=authorization_code"
+            headers = { 'content-type': "application/x-www-form-urlencoded" }
+            auth_conn.request("POST", "/oauth2/access_token", payload, headers)
+            res = auth_conn.getresponse()
+            data = json.loads(res.read().decode("utf-8"))
+            auth_conn.close()
+            if 'access_token' in data:
+                LOGGER.info('Received authentication token, saving...')
+                self.auth_token = data['access_token']
+                if 'expires_in' in data:
+                    ts = time.time() + data['expires_in']
+                    data['expires'] = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%S")
+                    data.pop('expires_in', None)
+                with cache_file.open(mode='w') as cf:
+                    json.dump(data, cf)
+                    cf.close()
+                    return True
+            else:
+                LOGGER.error('Failed to get auth_token: {}'.format(json.dumps(data)))
+        else:
+            self._pinPrompt(server_data['api_client'])
+        return False
+
+    def _pinPrompt(self, client_id):
+        LOGGER.info('Go to https://home.nest.com/login/oauth2?client_id={}&state=poly to authorize. '.format(client_id) + \
+                    'Then enter the code under the Custom Parameters section. ' + \
+                    'Create a key called "pin" with the code as the value, then restart the NodeServer.')
 
     drivers = [ { 'driver': 'ST', 'value': 0, 'uom': 2 } ]
     commands = {'DISCOVER': discover}

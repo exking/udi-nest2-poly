@@ -4,7 +4,7 @@ from converters import zulu_2_ts
 
 LOGGER = polyinterface.LOGGER
 
-NEST_MODES = {0: "off", 1: "heat", 2: "cool", 3: "heat-cool", 13: "away"}
+NEST_MODES = {0: "off", 1: "heat", 2: "cool", 3: "heat-cool", 13: "eco"}
 NEST_AWAY = {1: 'home', 2: 'away'}
 
 class Structure(polyinterface.Node):
@@ -224,6 +224,48 @@ class Thermostat(polyinterface.Node):
             return False
         self.parent.sendChange(self.set_url, nest_command)
 
+    def setRange(self, command):
+        query = command.get('query')
+        if not self._checkOnline():
+            return False
+        if self.temp_suffix == '_c':
+            new_sp_heat = float(query.get('H.uom4'))
+            new_sp_cool = float(query.get('C.uom4'))
+            if new_sp_heat > 32 or new_sp_heat < 9:
+                LOGGER.warning('SET_RANGE: Heat setpoint is out of range')
+                return False
+            if new_sp_cool > 32 or new_sp_cool < 9:
+                LOGGER.warning('SET_RANGE: Cool setpoint is out of range')
+                return False
+        else:
+            new_sp_heat = int(query.get('H.uom17'))
+            new_sp_cool = int(query.get('C.uom17'))
+            if new_sp_heat > 90 or new_sp_heat < 50:
+                LOGGER.warning('SET_RANGE: Heat setpoint is out of range')
+                return False
+            if new_sp_cool > 90 or new_sp_cool < 50:
+                LOGGER.warning('SET_RANGE: Cool setpoint is out of range')
+                return False
+        if self.mode != 'heat-cool':
+            LOGGER.warning('SET_RANGE is only available in heat-cool mode, not in {}'.format(self.mode))
+            return False
+        if self.locked:
+            LOGGER.warning('SET_RANGE is not available whet thermostat is locked')
+            return False
+        if new_sp_heat > new_sp_cool:
+            LOGGER.warning('SET_RANGE: heat setpoint should be less then cool setpoint')
+            return False
+        if new_sp_cool - new_sp_heat < 2:
+            LOGGER.warning('SET_RANGE: setpoints are too close')
+            return False
+        self.heat_sp = new_sp_heat
+        self.cool_sp = new_sp_cool
+        nest_command = {'target_temperature_high'+self.temp_suffix: self.cool_sp,
+                        'target_temperature_low'+self.temp_suffix: self.heat_sp}
+        self.setDriver('CLISPH', self.heat_sp)
+        self.setDriver('CLISPC', self.cool_sp)
+        self.parent.sendChange(self.set_url, nest_command)
+
     def setMode(self, command):
         if not self._checkOnline():
             return False
@@ -245,9 +287,9 @@ class Thermostat(polyinterface.Node):
             LOGGER.info('{} fan mode requested {} matches current fan mode'.format(self.name, str(new_fan)))
             return False
         if new_fan == 1:
-            nest_command = { 'fan_timer_active': true }
+            nest_command = { 'fan_timer_active': True }
         else:
-            nest_command = { 'fan_timer_active': false }
+            nest_command = { 'fan_timer_active': False }
         self.setDriver('CLIFS', new_fan)
         self.parent.sendChange(self.set_url, nest_command)
 
@@ -356,6 +398,7 @@ class Thermostat(polyinterface.Node):
                  'CLISPH': setHeat,
                  'CLISPC': setCool,
                  'SET_TIMER': setFanTimer,
+                 'SET_RANGE': setRange,
                  'QUERY': query }
 
     id = 'NEST_TST_F'
@@ -384,6 +427,7 @@ class ThermostatC(Thermostat):
                  'CLISPH': Thermostat.setHeat,
                  'CLISPC': Thermostat.setCool,
                  'SET_TIMER': Thermostat.setFanTimer,
+                 'SET_RANGE': Thermostat.setRange,
                  'QUERY': Thermostat.query}
 
     id = 'NEST_TST_C'
