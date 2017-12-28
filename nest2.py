@@ -19,8 +19,6 @@ LOGGER = polyinterface.LOGGER
 
 NEST_API_URL = 'https://developer-api.nest.com'
 
-CACHEFILE = join(expanduser("~") + '/.polyglot/.nest_auth')
-
 class Controller(polyinterface.Controller):
     def __init__(self, polyglot):
         super(Controller, self).__init__(polyglot)
@@ -44,8 +42,8 @@ class Controller(polyinterface.Controller):
                 LOGGER.info('Attempting to read auth_token from ~/.nest_poly')
                 with cache_file.open() as f:
                     cache_data = json.load(f)
-                    if 'auth_token' in cache_data:
-                        self.auth_token = cache_data['auth_token']
+                    if 'access_token' in cache_data:
+                        self.auth_token = cache_data['access_token']
                     f.close()
             else:
                 LOGGER.debug('Cached token is not found')
@@ -66,15 +64,16 @@ class Controller(polyinterface.Controller):
                 headers = { 'content-type': "application/x-www-form-urlencoded" }
                 auth_conn.request("POST", "/oauth2/access_token", payload, headers)
                 res = auth_conn.getresponse()
-                raw_data = res.read()
-                data = json.loads(raw_data.decode("utf-8"))
+                data = json.loads(res.read().decode("utf-8"))
                 auth_conn.close()
-                if 'auth_token' in data:
+                if 'access_token' in data:
                     LOGGER.debug('Received authentication token, saving...')
-                    self.auth_token = data['auth_token']
-                    with cache_file.open() as cf:
+                    self.auth_token = data['access_token']
+                    with cache_file.open(mode='w') as cf:
                         json.dump(data, cf)
                         cf.close()
+                    self.discover()
+                    self._checkStreaming()
                 else:
                     LOGGER.error('Failed to get auth_token')
             else:
@@ -231,9 +230,6 @@ class Controller(polyinterface.Controller):
         return True
     
     def sendChange(self, url, payload):
-        ''' url = "/devices/thermostats/device_id"
-            payload = "{\"temperature_scale\": \"F\"}"
-        '''
         if self.api_conn is None:
             LOGGER.info('sendChange: API Connection is not yet active')
             self.api_conn = http.client.HTTPSConnection("developer-api.nest.com")
@@ -257,6 +253,20 @@ class Controller(polyinterface.Controller):
 
         rsp_data = json.loads(response.read().decode("utf-8"))
         LOGGER.debug('API Response: {}'.format(json.dumps(rsp_data)))
+
+    def delete(self):
+        if not self.auth_token:
+            return True
+        LOGGER.warning('Nest API Authentication token will now be revoked')
+        auth_conn = http.client.HTTPSConnection("api.home.nest.com")
+        auth_conn.request("DELETE", "/oauth2/access_token/"+self.auth_token)
+        res = auth_conn.getresponse()
+        data = json.loads(res.read().decode("utf-8"))
+        LOGGER.info('Delete returned: {}'.format(json.dumps(data)))
+        auth_conn.close()
+        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
+        if cache_file.is_file():
+            cache_file.unlink()
 
     drivers = [ { 'driver': 'ST', 'value': 0, 'uom': 2 } ]
     commands = {'DISCOVER': discover}

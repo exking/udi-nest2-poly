@@ -173,6 +173,8 @@ class Thermostat(polyinterface.Node):
         self.reportDrivers()
 
     def setHeat(self, command):
+        if not self._checkOnline():
+            return False
         new_sp = self._str2temp(command.get('value'))
         if new_sp == self.heat_sp:
             LOGGER.info('{} new Heat setpoint {} matches current'.format(self.name, str(new_sp)))
@@ -197,6 +199,8 @@ class Thermostat(polyinterface.Node):
         self.parent.sendChange(self.set_url, nest_command)
 
     def setCool(self, command):
+        if not self._checkOnline():
+            return False
         new_sp = self._str2temp(command.get('value'))
         if new_sp == self.cool_sp:
             LOGGER.info('{} new Cool setpoint {} matches current'.format(self.name, str(new_sp)))
@@ -221,6 +225,8 @@ class Thermostat(polyinterface.Node):
         self.parent.sendChange(self.set_url, nest_command)
 
     def setMode(self, command):
+        if not self._checkOnline():
+            return False
         new_mode = int(command.get('value'))
         new_mode_str = NEST_MODES[new_mode]
         if new_mode_str == self.mode:
@@ -232,6 +238,8 @@ class Thermostat(polyinterface.Node):
         self.parent.sendChange(self.set_url, nest_command)
 
     def setFan(self, command):
+        if not self._checkOnline():
+            return False
         new_fan = int(command.get('value'))
         if new_fan == self.fan_mode:
             LOGGER.info('{} fan mode requested {} matches current fan mode'.format(self.name, str(new_fan)))
@@ -244,6 +252,8 @@ class Thermostat(polyinterface.Node):
         self.parent.sendChange(self.set_url, nest_command)
 
     def setFanTimer(self, command):
+        if not self._checkOnline():
+            return False
         new_timer = int(command.get('value'))
         if new_timer == self.fan_timer:
             LOGGER.info('{} fan timer requested {} matches current fan mode'.format(self.name, str(new_timer)))
@@ -253,6 +263,8 @@ class Thermostat(polyinterface.Node):
         self.parent.sendChange(self.set_url, nest_command)
 
     def setIncDec(self, command):
+        if not self._checkOnline():
+            return False
         cmd = command.get('cmd')
         if self.mode == 'heat-cool':
             if abs(self.ambient_temp - self.heat_sp) < abs(self.ambient_temp - self.cool_sp):
@@ -314,6 +326,12 @@ class Thermostat(polyinterface.Node):
                 LOGGER.info('{} is locked and in {} mode, adjustmens are not allowed'.format(self.name, self.mode))
                 return True
         return False
+
+    def _checkOnline(self):
+        if not self.online:
+            LOGGER.warning('{} is offline, commands are not accepted'.format(self.name))
+            return False
+        return True
 
     def _str2temp(self, temp):
         if self.temp_suffix == '_c':

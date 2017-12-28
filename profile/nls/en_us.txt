@@ -27,6 +27,9 @@ CMD-NTST-BRT-NAME = SetPoint Up
 CMD-NTST-DIM-NAME = SetPoint Down
 CMD-NTST-SET_TIMER-NAME = Set Fan Timer
 CMD-NTST-QUERY-NAME = Query
+CMD-NTST-SET_RANGE-NAME = Set Temperature Range
+
+PGM-CMD-NTST-SET_RANGE-FMT = /H// Heat to ${v}/ /C// Cool to ${v}/
 
 ST-NSTR-ST-NAME = Away
 ST-NSTR-GV0-NAME = Rush Hour
