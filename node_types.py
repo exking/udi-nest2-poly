@@ -570,6 +570,7 @@ class Camera(polyinterface.Node):
             LOGGER.info('{} is already streaming'.format(self.name))
             return False
         nest_command = {'is_streaming': True}
+        self.setDriver('ST', 1)
         self.parent.sendChange(self.set_url, nest_command)
 
     def stopStream(self, command):
@@ -577,6 +578,7 @@ class Camera(polyinterface.Node):
             LOGGER.info('{} is not streaming'.format(self.name))
             return False
         nest_command = {'is_streaming': False}
+        self.setDriver('ST', 0)
         self.parent.sendChange(self.set_url, nest_command)
 
     def _clearEventDetails(self):
