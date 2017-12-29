@@ -20,7 +20,7 @@ class Structure(polyinterface.Node):
     def start(self):
         self.update()
 
-    def query(self):
+    def query(self, command = None):
         self.update()
         self.reportDrivers()
 
@@ -466,7 +466,7 @@ class Protect(polyinterface.Node):
     def start(self):
         self.update()
 
-    def query(self):
+    def query(self, command = None):
         self.update()
         self.reportDrivers()
 
@@ -512,3 +512,102 @@ class Protect(polyinterface.Node):
     commands = { 'QUERY': query }
 
     id = 'NEST_SMK'
+
+
+class Camera(polyinterface.Node):
+    def __init__(self, parent, primary, address, name, element_id, device):
+        super().__init__(parent, primary, address, name)
+        self.name = name
+        self.element_id = element_id
+        self.element_prefix = '/devices/cameras/'
+        self.set_url = self.element_prefix + self.element_id
+        self.data = device
+
+    def start(self):
+        self.update()
+
+    def query(self, command = None):
+        self.update()
+        self.reportDrivers()
+
+    def update(self):
+        self.data = self.parent.data['devices']['cameras'][self.element_id]
+        end_ts = None
+        if self.data['is_streaming']:
+            self.setDriver('ST', 1)
+        else:
+            self.setDriver('ST', 0)
+
+        if self.data['is_online']:
+            self.setDriver('GV0', 1)
+        else:
+            self.setDriver('GV0', 0)
+
+        if 'last_event' in self.data:
+            ts_start = zulu_2_ts(self.data['last_event']['start_time'])
+            ts_now = datetime.datetime.utcnow()
+            ts_delta = ts_now - ts_start
+            minutes = round(ts_delta.total_seconds()/60)
+            self.setDriver('GV4', minutes)
+
+            if 'end_time' in self.data['last_event']:
+                end_ts = zulu_2_ts(self.data['last_event']['end_time'])
+                if start_ts > end_ts or minutes < 2:
+                    ''' In the middle of a new event or within a minute '''
+                    self._setEventDetails()
+                else:
+                    ''' Event is over '''
+                    self._clearEventDetails()
+            else:
+                ''' No end_time means it's a first event and it's on going, set the drivers '''
+                self._setEventDetails()
+        else:
+            self.setDriver('GV4', 0)
+            self._clearEventDetails()
+
+    def startStream(self, command):
+        if self.data['is_streaming']:
+            LOGGER.info('{} is already streaming'.format(self.name))
+            return False
+        nest_command = {'is_streaming': True}
+        self.parent.sendChange(self.set_url, nest_command)
+
+    def stopStream(self, command):
+        if not self.data['is_streaming']:
+            LOGGER.info('{} is not streaming'.format(self.name))
+            return False
+        nest_command = {'is_streaming': False}
+        self.parent.sendChange(self.set_url, nest_command)
+
+    def _clearEventDetails(self):
+        self.setDriver('GV1', 0)
+        self.setDriver('GV2', 0)
+        self.setDriver('GV3', 0)
+
+    def _setEventDetails(self):
+        if self.data['last_event']['has_sound']:
+            self.setDriver('GV1', 1)
+        else:
+            self.setDriver('GV1', 0)
+        if self.data['last_event']['has_motion']:
+            self.setDriver('GV2', 1)
+        else:
+            self.setDriver('GV2', 0)
+        if self.data['last_event']['has_person']:
+            self.setDriver('GV3', 1)
+        else:
+            self.setDriver('GV3', 0)
+
+    drivers = [ { 'driver': 'ST', 'value': 0, 'uom': '2' },
+                { 'driver': 'GV0', 'value': 0, 'uom': '2' },
+                { 'driver': 'GV1', 'value': 0, 'uom': '2' },
+                { 'driver': 'GV2', 'value': 0, 'uom': '2' },
+                { 'driver': 'GV3', 'value': 0, 'uom': '2' },
+                { 'driver': 'GV4', 'value': 0, 'uom': '45' }
+              ]
+
+    commands = { 'QUERY': query,
+                 'DON': startStream,
+                 'DOF': stopStream }
+
+    id = 'NEST_CAM'

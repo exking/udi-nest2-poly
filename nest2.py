@@ -15,7 +15,7 @@ import time
 import datetime
 
 from converters import id_2_addr
-from node_types import Thermostat, ThermostatC, Structure, Protect
+from node_types import Thermostat, ThermostatC, Structure, Protect, Camera
 
 LOGGER = polyinterface.LOGGER
 
@@ -153,10 +153,11 @@ class Controller(polyinterface.Controller):
         if 'cameras' in self.api_data['devices']:
             cams = self.api_data['devices']['cameras']
             LOGGER.info("Found {} smoke camera(s)".format(len(cams)))
-
             for cam_id, camera in cams.items():
                 address = id_2_addr(cam_id)
                 LOGGER.info("Id: {}, Name: {}".format(address, camera['name_long']))
+                if address not in self.nodes:
+                    self.addNode(Camera(self, self.address, address, camera['name'], cam_id, camera))
 
         self.discovery = False
 

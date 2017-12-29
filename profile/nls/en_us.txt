@@ -13,6 +13,8 @@ ND-NEST_STR-NAME = Structure
 ND-NEST_STR-ICON = GenericCtl
 ND-NEST_SMK-NAME = Smoke/CO Detector
 ND-NEST_SMK-ICON = SmokeSensor
+ND-NEST_CAM-NAME = Camera
+ND-NEST_CAM-ICON = MotionSensor
 
 ST-NTST-ST-NAME = Online
 ST-NTST-CLITEMP-NAME = Ambient Temperature
@@ -50,6 +52,16 @@ ST-NSMK-GV1-NAME = Smoke Alarm
 ST-NSMK-GV2-NAME = CO Alarm
 ST-NSMK-GV3-NAME = Manual Test
 ST-NSMK-GV4-NAME = Since Last Manual Test
+
+ST-NCAM-ST-NAME = Streaming
+ST-NCAM-GV0-NAME = Online
+ST-NCAM-GV1-NAME = Event Sound
+ST-NCAM-GV2-NAME = Event Motion
+ST-NCAM-GV3-NAME = Event Person
+ST-NCAM-GV4-NAME = Since Last Event
+
+CMD-NCAM-DON-NAME = Start Streaming
+CMD-NCAM-DOF-NAME = Stop Streaming
 
 AWAY_SEL-1 = Home
 AWAY_SEL-2 = Away

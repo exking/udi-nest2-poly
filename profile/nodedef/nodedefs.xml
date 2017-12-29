@@ -137,4 +137,24 @@
     </cmds>
   </nodeDef>
 
+  <nodeDef id="NEST_CAM" nls="NCAM">
+    <editors />
+    <sts>
+      <st id="ST" editor="bool" />
+      <st id="GV0" editor="bool" />
+      <st id="GV1" editor="bool" />
+      <st id="GV2" editor="bool" />
+      <st id="GV3" editor="bool" />
+      <st id="GV4" editor="MINSAGO" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON" />
+        <cmd id="DOF" />
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+
 </nodeDefs>
