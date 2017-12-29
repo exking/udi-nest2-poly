@@ -56,7 +56,7 @@
       </accepts>
     </cmds>
   </nodeDef>
-  
+
   <nodeDef id="NEST_TST_C" nls="NTST">
     <editors />
     <sts>
@@ -69,7 +69,7 @@
       <st id="CLIHUM" editor="TSTAT_HUM" />
       <st id="CLIHCS" editor="TSTAT_HCS" />
       <st id="GV1" editor="FAN_TIMER" />
-      <st id="GV2" editor="TOTARGET" />      
+      <st id="GV2" editor="TOTARGET" />
     </sts>
     <cmds>
       <sends />
@@ -99,7 +99,7 @@
       </accepts>
     </cmds>
   </nodeDef>
-  
+
   <nodeDef id="NEST_STR" nls="NSTR">
     <editors />
     <sts>
@@ -126,6 +126,7 @@
       <st id="GV0" editor="SMKBAT" />
       <st id="GV1" editor="COSMOST" />
       <st id="GV2" editor="COSMOST" />
+      <st id="GV3" editor="bool" />
     </sts>
     <cmds>
       <sends />

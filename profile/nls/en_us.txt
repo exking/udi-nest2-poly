@@ -48,6 +48,7 @@ ST-NSMK-ST-NAME = Status Color
 ST-NSMK-GV0-NAME = Battery Status
 ST-NSMK-GV1-NAME = Smoke Alarm
 ST-NSMK-GV2-NAME = CO Alarm
+ST-NSMK-GV3-NAME = Manual Test
 
 AWAY_SEL-1 = Home
 AWAY_SEL-2 = Away

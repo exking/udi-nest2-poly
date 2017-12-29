@@ -491,10 +491,16 @@ class Protect(polyinterface.Node):
         else:
             LOGGER.error('{} unknown UI Color state!'.format(self.name))
 
+        if self.data['is_manual_test_active']:
+            self.setDriver('GV3', 1)
+        else:
+            self.setDriver('GV3', 0)
+
     drivers = [ { 'driver': 'ST', 'value': 0, 'uom': '25' },
                 { 'driver': 'GV0', 'value': 0, 'uom': '93' },
                 { 'driver': 'GV1', 'value': 0, 'uom': '25' },
-                { 'driver': 'GV2', 'value': 0, 'uom': '25' }
+                { 'driver': 'GV2', 'value': 0, 'uom': '25' },
+                { 'driver': 'GV3', 'value': 0, 'uom': '2' }
               ]
 
     commands = { 'QUERY': query }
