@@ -58,4 +58,19 @@
     <range uom="25" subset="1-2" nls="AWAY_SEL" />
   </editor>
 
+  <!-- CO/Smoke alarm -->
+  <editor id="COSMOST">
+    <range uom="25" subset="1-4" nls="SMOKE_SEL" />
+  </editor>
+
+  <!-- Protect status -->
+  <editor id="SMKST">
+    <range uom="25" subset="1-4" nls="SMKUI_SEL" />
+  </editor>
+
+  <!-- Protect battery status -->
+  <editor id="SMKBAT">
+    <range uom="93" subset="11,13" />
+  </editor>
+
 </editors>

@@ -1,6 +1,6 @@
 import datetime
 import polyinterface
-from converters import zulu_2_ts
+from converters import zulu_2_ts, cosmost2num
 
 LOGGER = polyinterface.LOGGER
 
@@ -39,6 +39,16 @@ class Structure(polyinterface.Node):
         else:
             self.setDriver('GV0', 0)
 
+        if 'smoke_alarm_state' in self.data:
+            self.setDriver('GV1', cosmost2num(self.data['smoke_alarm_state']))
+        else:
+            self.setDriver('GV1', 1)
+
+        if 'co_alarm_state' in self.data:
+            self.setDriver('GV2', cosmost2num(self.data['co_alarm_state']))
+        else:
+            self.setDriver('GV2', 1)
+
     def setAway(self, command):
         away = int(command.get('value'))
         if away == 2 and self.away:
@@ -63,7 +73,9 @@ class Structure(polyinterface.Node):
         return False
 
     drivers = [ { 'driver': 'ST', 'value': 0, 'uom': '25' },
-                { 'driver': 'GV0', 'value': 0, 'uom': '2' }
+                { 'driver': 'GV0', 'value': 0, 'uom': '2' },
+                { 'driver': 'GV1', 'value': 0, 'uom': '25' },
+                { 'driver': 'GV2', 'value': 0, 'uom': '25' }
               ]
 
     commands = { 'SET_AWAY': setAway,
@@ -87,6 +99,7 @@ class Thermostat(polyinterface.Node):
         self.lock_max = None
         self.lock_min = None
         self.locked = False
+        self.emerg_heat = False
         self.sp = None
         self.online = None
         self.state = None
@@ -116,6 +129,11 @@ class Thermostat(polyinterface.Node):
             self.locked = True
         else:
             self.locked = False
+
+        if self.data['is_using_emergency_heat']:
+            self.emerg_heat = True
+        else:
+            self.emerg_heat = False
 
         self.setDriver('CLIHUM', int(self.data['humidity']))
         self.setDriver('GV2', int(self.data['time_to_target'].replace('~','').replace('>','').replace('<','')))
@@ -373,6 +391,9 @@ class Thermostat(polyinterface.Node):
         if not self.online:
             LOGGER.warning('{} is offline, commands are not accepted'.format(self.name))
             return False
+        if self.emerg_heat:
+            LOGGER.warning('{} is using Emergency Heat, changes are not accepted'.format(self.name))
+            return False
         return True
 
     def _str2temp(self, temp):
@@ -431,3 +452,51 @@ class ThermostatC(Thermostat):
                  'QUERY': Thermostat.query}
 
     id = 'NEST_TST_C'
+
+
+class Protect(polyinterface.Node):
+    def __init__(self, parent, primary, address, name, element_id, device):
+        super().__init__(parent, primary, address, name)
+        self.name = name
+        self.element_id = element_id
+        self.element_prefix = '/devices/smoke_co_alarms/'
+        self.set_url = self.element_prefix + self.element_id
+        self.data = device
+
+    def start(self):
+        self.update()
+
+    def query(self):
+        self.update()
+        self.reportDrivers()
+
+    def update(self):
+        self.data = self.parent.data['devices']['smoke_co_alarms'][self.element_id]
+        self.setDriver('GV1', cosmost2num(self.data['smoke_alarm_state']))
+        self.setDriver('GV2', cosmost2num(self.data['co_alarm_state']))
+
+        if self.data['battery_health'] == 'ok':
+            self.setDriver('GV0', 13)
+        else:
+            self.setDriver('GV0', 11)
+
+        if self.data['ui_color_state'] == 'grey':
+            self.setDriver('ST', 1)
+        elif self.data['ui_color_state'] == 'green':
+            self.setDriver('ST', 2)
+        elif self.data['ui_color_state'] == 'yellow':
+            self.setDriver('ST', 3)
+        elif self.data['ui_color_state'] == 'red':
+            self.setDriver('ST', 4)
+        else:
+            LOGGER.error('{} unknown UI Color state!'.format(self.name))
+
+    drivers = [ { 'driver': 'ST', 'value': 0, 'uom': '25' },
+                { 'driver': 'GV0', 'value': 0, 'uom': '93' },
+                { 'driver': 'GV1', 'value': 0, 'uom': '25' },
+                { 'driver': 'GV2', 'value': 0, 'uom': '25' }
+              ]
+
+    commands = { 'QUERY': query }
+
+    id = 'NEST_SMK'

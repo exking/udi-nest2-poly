@@ -11,6 +11,8 @@ ND-NEST_TST_F-NAME = Nest Thermostat F
 ND-NEST_TST_F-ICON = Thermostat
 ND-NEST_STR-NAME = Structure
 ND-NEST_STR-ICON = GenericCtl
+ND-NEST_SMK-NAME = Smoke/CO Detector
+ND-NEST_SMK-ICON = SmokeSensor
 
 ST-NTST-ST-NAME = Online
 ST-NTST-CLITEMP-NAME = Ambient Temperature
@@ -37,8 +39,25 @@ PGM-CMD-NTST-SET_RANGE-FMT = /H// Heat to ${v}/ /C// Cool to ${v}/
 
 ST-NSTR-ST-NAME = Away
 ST-NSTR-GV0-NAME = Rush Hour
+ST-NSTR-GV1-NAME = Smoke Alarm
+ST-NSTR-GV2-NAME = CO Alarm
 
 CMD-NSTR-SET_AWAY-NAME = Set Away To
 
+ST-NSMK-ST-NAME = Status Color
+ST-NSMK-GV0-NAME = Battery Status
+ST-NSMK-GV1-NAME = Smoke Alarm
+ST-NSMK-GV2-NAME = CO Alarm
+
 AWAY_SEL-1 = Home
 AWAY_SEL-2 = Away
+
+SMOKE_SEL-1 = N/A
+SMOKE_SEL-2 = Ok
+SMOKE_SEL-3 = Warning
+SMOKE_SEL-4 = Emergency
+
+SMKUI_SEL-1 = Grey
+SMKUI_SEL-2 = Green
+SMKUI_SEL-3 = Yellow
+SMKUI_SEL-4 = Red

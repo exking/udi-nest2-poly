@@ -105,6 +105,8 @@
     <sts>
       <st id="ST" editor="STR_AWAY" />
       <st id="GV0" editor="bool" />
+      <st id="GV1" editor="COSMOST" />
+      <st id="GV2" editor="COSMOST" />
     </sts>
     <cmds>
       <sends />
@@ -112,6 +114,22 @@
         <cmd id="SET_AWAY">
           <p id="" editor="STR_AWAY" init="ST" />
         </cmd>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+
+  <nodeDef id="NEST_SMK" nls="NSMK">
+    <editors />
+    <sts>
+      <st id="ST" editor="SMKST" />
+      <st id="GV0" editor="SMKBAT" />
+      <st id="GV1" editor="COSMOST" />
+      <st id="GV2" editor="COSMOST" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
         <cmd id="QUERY" />
       </accepts>
     </cmds>
