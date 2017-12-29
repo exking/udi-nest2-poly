@@ -57,7 +57,7 @@ SMOKE_SEL-2 = Ok
 SMOKE_SEL-3 = Warning
 SMOKE_SEL-4 = Emergency
 
-SMKUI_SEL-1 = Grey
+SMKUI_SEL-1 = Gray
 SMKUI_SEL-2 = Green
 SMKUI_SEL-3 = Yellow
 SMKUI_SEL-4 = Red

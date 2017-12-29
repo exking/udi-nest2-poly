@@ -480,7 +480,7 @@ class Protect(polyinterface.Node):
         else:
             self.setDriver('GV0', 11)
 
-        if self.data['ui_color_state'] == 'grey':
+        if self.data['ui_color_state'] == 'gray':
             self.setDriver('ST', 1)
         elif self.data['ui_color_state'] == 'green':
             self.setDriver('ST', 2)
