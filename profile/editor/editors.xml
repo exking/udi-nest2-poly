@@ -73,4 +73,9 @@
     <range uom="93" subset="11,13" />
   </editor>
 
+  <!-- Days since last manual test -->
+  <editor id="DAYSAGO">
+    <range uom="10" min="0" max="3650" />
+  </editor>
+
 </editors>

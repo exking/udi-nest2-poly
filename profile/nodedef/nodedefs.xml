@@ -127,6 +127,7 @@
       <st id="GV1" editor="COSMOST" />
       <st id="GV2" editor="COSMOST" />
       <st id="GV3" editor="bool" />
+      <st id="GV4" editor="DAYSAGO" />
     </sts>
     <cmds>
       <sends />

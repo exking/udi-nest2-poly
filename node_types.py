@@ -496,11 +496,17 @@ class Protect(polyinterface.Node):
         else:
             self.setDriver('GV3', 0)
 
+        ts_mtest = zulu_2_ts(self.data['last_manual_test_time'])
+        ts_now = datetime.datetime.utcnow()
+        ts_delta = ts_now - ts_mtest
+        self.setDriver('GV4', ts_delta.days)
+
     drivers = [ { 'driver': 'ST', 'value': 0, 'uom': '25' },
                 { 'driver': 'GV0', 'value': 0, 'uom': '93' },
                 { 'driver': 'GV1', 'value': 0, 'uom': '25' },
                 { 'driver': 'GV2', 'value': 0, 'uom': '25' },
-                { 'driver': 'GV3', 'value': 0, 'uom': '2' }
+                { 'driver': 'GV3', 'value': 0, 'uom': '2' },
+                { 'driver': 'GV4', 'value': 0, 'uom': '10' }
               ]
 
     commands = { 'QUERY': query }
