@@ -106,6 +106,9 @@ class Thermostat(polyinterface.Node):
         self.mode = None
         self.fan_timer = None
         self.fan_mode = None
+        self._sp_max = 90
+        self._sp_min = 50
+        self._sp_inc = 1
 
     def start(self):
         self.update()
@@ -193,52 +196,48 @@ class Thermostat(polyinterface.Node):
     def setHeat(self, command):
         if not self._checkOnline():
             return False
-        new_sp = self._str2temp(command.get('value'))
-        if new_sp == self.heat_sp:
-            LOGGER.info('{} new Heat setpoint {} matches current'.format(self.name, str(new_sp)))
+        new_sp = self._str2temp(command.get('value'), True)
+        if not self._checkLock(new_sp):
             return False
-        if self._checkLock(new_sp):
+        if not self._checkSetpoints(new_sp):
             return False
         if self.mode in ['eco', 'off', 'cool']:
-            LOGGER.info('{} is in {} mode, please switch into other mode before adjusting heat setpoint'.format(self.name, self.mode))
+            LOGGER.info('CLISPH: {} is in {} mode, please switch into other mode before adjusting heat setpoint'.format(self.name, self.mode))
             return False
         elif self.mode == 'heat':
-            self.heat_sp = new_sp
             self.sp = new_sp
-            self.setDriver('CLISPH', self.heat_sp)
-            nest_command = {'target_temperature'+self.temp_suffix: self.heat_sp}
+            self.setDriver('CLISPH', self.sp)
+            nest_command = {'target_temperature'+self.temp_suffix: self.sp}
         elif self.mode == 'heat-cool':
             self.heat_sp = new_sp
             self.setDriver('CLISPH', self.heat_sp)
             nest_command = {'target_temperature_low'+self.temp_suffix: self.heat_sp}
         else:
-            LOGGER.error('Failed to set {} Heat Setpoint: unknown thermostat mode'.format(self.name))
+            LOGGER.error('CLISPH: Failed to set {} Heat Setpoint: unknown thermostat mode'.format(self.name))
             return False
         self.parent.sendChange(self.set_url, nest_command)
 
     def setCool(self, command):
         if not self._checkOnline():
             return False
-        new_sp = self._str2temp(command.get('value'))
-        if new_sp == self.cool_sp:
-            LOGGER.info('{} new Cool setpoint {} matches current'.format(self.name, str(new_sp)))
+        new_sp = self._str2temp(command.get('value'), True)
+        if not self._checkLock(new_sp):
             return False
-        if self._checkLock(new_sp):
+        if not self._checkSetpoints(None, new_sp):
             return False
         if self.mode in ['eco', 'off', 'heat']:
-            LOGGER.info('{} is in {} mode, please switch into other mode before adjusting cool setpoint'.format(self.name, self.mode))
+            LOGGER.info('CLISPC: {} is in {} mode, please switch into other mode before adjusting cool setpoint'.format(self.name, self.mode))
             return False
         elif self.mode == 'cool':
-            self.cool_sp = new_sp
             self.sp = new_sp
-            self.setDriver('CLISPC', self.cool_sp)
-            nest_command = {'target_temperature'+self.temp_suffix: self.cool_sp}
+            self.setDriver('CLISPC', self.sp)
+            nest_command = {'target_temperature'+self.temp_suffix: self.sp}
         elif self.mode == 'heat-cool':
             self.cool_sp = new_sp
             self.setDriver('CLISPC', self.cool_sp)
             nest_command = {'target_temperature_high'+self.temp_suffix: self.cool_sp}
         else:
-            LOGGER.error('Failed to set {} Heat Setpoint: unknown thermostat mode'.format(self.name))
+            LOGGER.error('CLISPC: Failed to set {} Cool Setpoint: unknown thermostat mode'.format(self.name))
             return False
         self.parent.sendChange(self.set_url, nest_command)
 
@@ -246,51 +245,47 @@ class Thermostat(polyinterface.Node):
         query = command.get('query')
         if not self._checkOnline():
             return False
-        if self.temp_suffix == '_c':
-            new_sp_heat = float(query.get('H.uom4'))
-            new_sp_cool = float(query.get('C.uom4'))
-            if new_sp_heat > 32 or new_sp_heat < 9:
-                LOGGER.warning('SET_RANGE: Heat setpoint is out of range')
-                return False
-            if new_sp_cool > 32 or new_sp_cool < 9:
-                LOGGER.warning('SET_RANGE: Cool setpoint is out of range')
-                return False
-        else:
-            new_sp_heat = int(query.get('H.uom17'))
-            new_sp_cool = int(query.get('C.uom17'))
-            if new_sp_heat > 90 or new_sp_heat < 50:
-                LOGGER.warning('SET_RANGE: Heat setpoint is out of range')
-                return False
-            if new_sp_cool > 90 or new_sp_cool < 50:
-                LOGGER.warning('SET_RANGE: Cool setpoint is out of range')
-                return False
         if self.mode != 'heat-cool':
             LOGGER.warning('SET_RANGE is only available in heat-cool mode, not in {}'.format(self.mode))
             return False
         if self.locked:
-            LOGGER.warning('SET_RANGE is not available whet thermostat is locked')
+            LOGGER.warning('SET_RANGE is not available while thermostat is locked')
             return False
-        if new_sp_heat > new_sp_cool:
-            LOGGER.warning('SET_RANGE: heat setpoint should be less then cool setpoint')
+        if self.temp_suffix == '_c':
+            new_sp_heat = self._str2temp(query.get('H.uom4'), True)
+            new_sp_cool = self._str2temp(query.get('C.uom4'), True)
+        else:
+            new_sp_heat = self._str2temp(query.get('H.uom17'), True)
+            new_sp_cool = self._str2temp(query.get('C.uom17'), True)
+        if not self._checkSetpoints(new_sp_heat, new_sp_cool):
             return False
-        if new_sp_cool - new_sp_heat < 2:
-            LOGGER.warning('SET_RANGE: setpoints are too close')
-            return False
-        self.heat_sp = new_sp_heat
-        self.cool_sp = new_sp_cool
-        nest_command = {'target_temperature_high'+self.temp_suffix: self.cool_sp,
-                        'target_temperature_low'+self.temp_suffix: self.heat_sp}
-        self.setDriver('CLISPH', self.heat_sp)
-        self.setDriver('CLISPC', self.cool_sp)
+
+        nest_command = {}
+        if self.heat_sp != new_sp_heat:
+            self.heat_sp = new_sp_heat
+            nest_command['target_temperature_low'+self.temp_suffix] = self.heat_sp
+            self.setDriver('CLISPH', self.heat_sp)
+        if self.cool_sp != new_sp_cool:
+            self.cool_sp = new_sp_cool
+            nest_command['target_temperature_high'+self.temp_suffix] = self.cool_sp
+            self.setDriver('CLISPC', self.cool_sp)
         self.parent.sendChange(self.set_url, nest_command)
 
     def setMode(self, command):
         if not self._checkOnline():
             return False
         new_mode = int(command.get('value'))
+        if new_mode not in [0, 1, 2, 3, 13]:
+            LOGGER.error('setMode: invalid mode {} requested'.format(new_mode))
         new_mode_str = NEST_MODES[new_mode]
         if new_mode_str == self.mode:
             LOGGER.info('{}: {} new mode requested is the same as current mode {}'.format(self.name, new_mode_str, self.mode))
+            return False
+        if (new_mode == 2 or new_mode == 3) and self.data['can_cool'] == False:
+            LOGGER.error('setMode: {} can not cool'.format(self.name))
+            return False
+        if (new_mode == 1 or new_mode == 3) and self.data['can_heat'] == False:
+            LOGGER.error('setMode: {} can not heat'.format(self.name))
             return False
         LOGGER.debug('Changing {} mode to: {}'.format(self.name, new_mode_str))
         nest_command = { 'hvac_mode': new_mode_str }
@@ -299,6 +294,9 @@ class Thermostat(polyinterface.Node):
 
     def setFan(self, command):
         if not self._checkOnline():
+            return False
+        if self.data['has_fan'] == False:
+            LOGGER.error('setFan: {} has no FAN'.format(self.name))
             return False
         new_fan = int(command.get('value'))
         if new_fan == self.fan_mode:
@@ -314,9 +312,15 @@ class Thermostat(polyinterface.Node):
     def setFanTimer(self, command):
         if not self._checkOnline():
             return False
+        if self.data['has_fan'] == False:
+            LOGGER.error('setFanTimer: {} has no FAN'.format(self.name))
+            return False
         new_timer = int(command.get('value'))
+        if new_timer not in [15, 30, 45, 60, 120, 240, 480, 960]:
+            LOGGER.error('setFanTimer: {} is not a valid fan timer duration'.format(new_timer))
+            return False
         if new_timer == self.fan_timer:
-            LOGGER.info('{} fan timer requested {} matches current fan mode'.format(self.name, str(new_timer)))
+            LOGGER.info('{} fan timer requested {} matches current fan timer'.format(self.name, str(new_timer)))
             return False
         nest_command = { 'fan_timer_duration': new_timer }
         self.setDriver('GV1', new_timer)
@@ -332,46 +336,46 @@ class Thermostat(polyinterface.Node):
                 heating = True
                 driver = 'CLISPH'
                 nest_keyword = 'target_temperature_low'+self.temp_suffix
+                current_sp = self.heat_sp
             else:
                 LOGGER.info('IncDec: assuming cool setpoint')
                 heating = False
                 driver = 'CLISPC'
                 nest_keyword = 'target_temperature_high'+self.temp_suffix
+                current_sp = self.cool_sp
         elif self.mode == 'heat':
             heating = True
             driver = 'CLISPH'
             nest_keyword = 'target_temperature'+self.temp_suffix
+            current_sp = self.sp
         elif self.mode == 'cool':
             heating = False
             driver = 'CLISPC'
             nest_keyword = 'target_temperature'+self.temp_suffix
+            current_sp = self.sp
         else:
             LOGGER.error('Increasing or Decreasing setpoint is not available while in {} mode'.format(self.mode))
-        if self.temp_suffix == '_c':
-            increment = 0.5
-            temp_max = 32
-            temp_min = 9
-        else:
-            increment = 1
-            temp_max = 90
-            temp_min = 50
         if cmd == 'BRT':
             if heating:
-                new_sp = self.heat_sp + increment
+                new_sp = current_sp + self._sp_inc
+                validation_result = self._checkSetpoints(new_sp)
             else:
-                new_sp = self.cool_sp + increment
+                new_sp = current_sp + self._sp_inc
+                validation_result = self._checkSetpoints(None, new_sp)
         elif cmd == 'DIM':
             if heating:
-                new_sp = self.heat_sp - increment
+                new_sp = current_sp - self._sp_inc
+                validation_result = self._checkSetpoints(new_sp)
             else:
-                new_sp = self.cool_sp - increment
+                new_sp = current_sp - self._sp_inc
+                validation_result = self._checkSetpoints(None, new_sp)
         else:
             LOGGER.error('Unknown command {}'.format(cmd))
             return False
-        if new_sp < temp_min or new_sp > temp_max:
+        if validation_result == False:
             LOGGER.error('Can\'t increment or decrement the setpoint beyond limits {}'.format(new_sp))
             return False
-        if self._checkLock(new_sp):
+        if not self._checkLock(new_sp):
             return False
         nest_command = {nest_keyword: new_sp}
         self.setDriver(driver, new_sp)
@@ -381,11 +385,11 @@ class Thermostat(polyinterface.Node):
         if self.locked:
             if new_sp > self.lock_max or new_sp < self.lock_min:
                 LOGGER.info('{} is locked, requested setpoint {} is out of allowed range: {} to {}'.format(self.name, str(new_sp), str(self.lock_min), str(self.lock_max)))
-                return True
+                return False
             if self.mode == 'heat-cool':
                 LOGGER.info('{} is locked and in {} mode, adjustmens are not allowed'.format(self.name, self.mode))
-                return True
-        return False
+                return False
+        return True
 
     def _checkOnline(self):
         if not self.online:
@@ -396,10 +400,79 @@ class Thermostat(polyinterface.Node):
             return False
         return True
 
-    def _str2temp(self, temp):
+    def _checkSetpoints(self, new_heat = None, new_cool = None):
+        new_heat_sp = None
+        new_cool_sp = None
+        ''' Figure out our current setpoints '''
+        if self.mode == 'heat-cool':
+            new_heat_sp = self.heat_sp
+            new_cool_sp = self.cool_sp
+        elif self.mode == 'heat':
+            new_heat_sp = self.sp
+        elif self.mode == 'cool':
+            new_cool_sp = self.sp
+        else:
+            LOGGER.error('_checkSetpoints: setpoint validation is not available in {} mode'.format(self.mode))
+            return False
+
+        ''' We have our baseline, apply changes if any '''
+        if new_heat is not None:
+            if new_heat > self._sp_max or new_heat < self._sp_min:
+                LOGGER.warning('_checkSetpoints: Heat setpoint {} is out of range'.format(new_heat))
+                return False
+            new_heat_sp = new_heat
+        if new_cool is not None:
+            if new_cool > self._sp_max or new_cool < self._sp_min:
+                LOGGER.warning('_checkSetpoints: Cool setpoint {} is out of range'.format(new_cool))
+                return False
+            new_cool_sp = new_cool
+
+        ''' We have our new targets, let's see if new combination is valid '''
+        if self.mode == 'heat':
+            ''' Heating mode, the only check is against current '''
+            if new_heat_sp == self.sp:
+                    LOGGER.warning('_checkSetpoints: New Heat setpoint {} matches current.'.format(new_heat_sp))
+                    return False
+            return True
+        elif self.mode == 'cool':
+            ''' Cooling mode, the only check is against current '''
+            if new_cool_sp == self.sp:
+                    LOGGER.warning('_checkSetpoints: New Cool setpoint {} matches current.'.format(new_cool_sp))
+                    return False
+            return True
+        else:
+            ''' heat-cool mode '''
+            if new_heat_sp == self.heat_sp and new_cool_sp == self.cool_sp:
+                LOGGER.warning('_checkSetpoints: both heating {} and cooling {} setpoints match current'.format(new_heat_sp, new_cool_sp))
+                return False
+            if new_heat_sp >= new_cool_sp:
+                LOGGER.warning('_checkSetpoints: Heating setpoint {} should be less than cooling {}'.format(new_heat_sp, new_cool_sp))
+                return False
+            sp_difference = new_cool_sp - new_heat_sp
+            if self.temp_suffix == '_c':
+                if sp_difference < 1.5:
+                    LOGGER.warning('_checkSetpoints: Setponints {} and {} are too close, 1.5 is the minimum split!'.format(new_heat_sp, new_cool_sp))
+                    return False
+            else:
+                if sp_difference < 3:
+                    LOGGER.warning('_checkSetpoints: Setponints {} and {} are too close, 3 is the minimum split!'.format(new_heat_sp, new_cool_sp))
+                    return False
+
+        ''' If all checks have passed '''
+        return True
+
+    def _str2temp(self, temp, validate = False):
         if self.temp_suffix == '_c':
-            return float(temp)
-        return int(temp)
+            result = float(temp)
+        else:
+            result = int(temp)
+        if validate and result > self._sp_max:
+            LOGGER.warning('_str2temp: {} > {}'.format(result, self._sp_max))
+            result = self._sp_max
+        elif validate and result < self._sp_min:
+            LOGGER.warning('_str2temp: {} < {}'.format(result, self._sp_min))
+            result = self._sp_min
+        return result
 
     drivers = [ { 'driver': 'CLIMD', 'value': 0, 'uom': '67' },
                 { 'driver': 'CLISPC', 'value': 0, 'uom': '17' },
@@ -429,7 +502,10 @@ class ThermostatC(Thermostat):
     def __init__(self, parent, primary, address, name, element_id, device):
         super().__init__(parent, primary, address, name, element_id, device)
         self.temp_suffix = '_c'
-        
+        self._sp_max = 32
+        self._sp_min = 9
+        self._sp_inc = 0.5
+
     drivers = [ { 'driver': 'CLIMD', 'value': 0, 'uom': '67' },
                 { 'driver': 'CLISPC', 'value': 0, 'uom': '4' },
                 { 'driver': 'CLISPH', 'value': 0, 'uom': '4' },

@@ -192,11 +192,14 @@ class Controller(polyinterface.Controller):
     
     def sendChange(self, url, payload):
         if not self.auth_token:
+            LOGGER.error('sendChange: no auth_token')
+            return False
+        if len(payload) < 1:
+            LOGGER.error('Empty payload!')
             return False
         if self.api_conn is None:
             LOGGER.info('sendChange: API Connection is not yet active')
             self.api_conn = http.client.HTTPSConnection("developer-api.nest.com")
-
         command = json.dumps(payload, separators=(',', ': '))
         headers = {'authorization': "Bearer {0}".format(self.auth_token)}
         LOGGER.debug('Sending {} to {}'.format(command, url))
