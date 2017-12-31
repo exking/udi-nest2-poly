@@ -223,6 +223,9 @@ class Controller(polyinterface.Controller):
     def delete(self):
         if not self.auth_token:
             return True
+        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
+        if cache_file.is_file():
+            cache_file.unlink()
         LOGGER.warning('Nest API Authentication token will now be revoked')
         auth_conn = http.client.HTTPSConnection("api.home.nest.com")
         auth_conn.request("DELETE", "/oauth2/access_tokens/"+self.auth_token)
@@ -234,9 +237,6 @@ class Controller(polyinterface.Controller):
             LOGGER.info('Delete returned: {}'.format(data))
         auth_conn.close()
         self.auth_token = None
-        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
-        if cache_file.is_file():
-            cache_file.unlink()
 
     def _getToken(self):
         cache_file = Path(join(expanduser("~") + '/.nest_poly'))
