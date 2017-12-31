@@ -227,8 +227,11 @@ class Controller(polyinterface.Controller):
         auth_conn = http.client.HTTPSConnection("api.home.nest.com")
         auth_conn.request("DELETE", "/oauth2/access_tokens/"+self.auth_token)
         res = auth_conn.getresponse()
-        data = json.loads(res.read().decode("utf-8"))
-        LOGGER.info('Delete returned: {}'.format(json.dumps(data)))
+        if res.status == 204:
+            LOGGER.info('Revoke successful')
+        else:
+            data = res.read().decode("utf-8")
+            LOGGER.info('Delete returned: {}'.format(data))
         auth_conn.close()
         self.auth_token = None
         cache_file = Path(join(expanduser("~") + '/.nest_poly'))
