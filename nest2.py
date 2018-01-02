@@ -13,6 +13,9 @@ from urllib.parse import urlparse
 import certifi
 import time
 import datetime
+import hmac
+import hashlib
+import base64
 
 from converters import id_2_addr
 from node_types import Thermostat, ThermostatC, Structure, Protect, Camera
@@ -34,15 +37,58 @@ class Controller(polyinterface.Controller):
         self.stream_thread = None
         self.data = None
         self.discovery = None
+        self.cookie = None
+        self.cookie_tries = 0
+        self.api_conn_last_used = int(time.time())
         
     def start(self):
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
         if self._getToken():
             self.discover()
             self._checkStreaming()
+            return True
+        return False
 
     def longPoll(self):
         self._checkStreaming()
+        '''
+        if self.api_conn is not None:
+            if (int(time.time()) - self.api_conn_last_used) > 1800:
+                LOGGER.info("API connection inactive for 30 minutes, closing...")
+                self.api_conn.close()
+                self.api_conn = None
+        '''
+        return True
+
+    def shortPoll(self):
+        if self.auth_token is not None or self.cookie is None:
+            return True
+        ''' Only try 60 times, shuld be about 15 minutes '''
+        auth_pin = None
+        if self.cookie_tries < 60:
+            self.cookie_tries += 1
+            LOGGER.debug('Attemting to get a PIN from AWS...')
+            aws_conn = http.client.HTTPSConnection("e6vcnh7oyl.execute-api.us-west-2.amazonaws.com")
+            aws_conn.request("GET", "/prod/pin?state="+self.cookie)
+            response = aws_conn.getresponse()
+            if response.status == 200:
+                aws_data = json.loads(response.read().decode("utf-8"))
+                if 'pin' in aws_data:
+                    auth_pin = aws_data['pin']
+                else:
+                    LOGGER.error('AWS did not return pin: {}'.format(json.dumps(aws_data)))
+            else:
+                LOGGER.error('AWS returned status code: {}'.format(response.status))
+            aws_conn.close()
+            if auth_pin is not None:
+                self.cookie = None
+                if self._getToken(auth_pin):
+                    self.discover()
+                    self._checkStreaming()
+        else:
+            LOGGER.warning('Please restart the node server and try Nest authentication again.')
+            self.cookie = None
+        return True
 
     def _checkStreaming(self):
         if self.auth_token is None or self.discovery == True:
@@ -96,7 +142,7 @@ class Controller(polyinterface.Controller):
                 LOGGER.error('REST Streaming: Unhandled event {} {}'.format(event_type, event.data))
                 client.close()
                 return False
-                
+
     def update(self):
         pass
 
@@ -164,10 +210,10 @@ class Controller(polyinterface.Controller):
     def getState(self):
         if not self.auth_token:
             return False
+        self.api_conn_last_used = int(time.time())
         headers = {'authorization': "Bearer {0}".format(self.auth_token)}
 
         if self.api_conn is None:
-            ''' Establish a fresh connection '''
             LOGGER.debug('getState: Attempting to open a connection to the Nest API endpoint')
             self.api_conn = http.client.HTTPSConnection("developer-api.nest.com")
 
@@ -184,10 +230,14 @@ class Controller(polyinterface.Controller):
             LOGGER.debug('Response status: {}'.format(response.status))
             if response.status != 200:
                 LOGGER.error('Redirect with non 200 response')
-                self.api_conn.close()
-                self.api_conn = None
-                return False
-        self.api_data = json.loads(response.read().decode("utf-8"))	
+
+        if response.status != 200:
+            LOGGER.error('BAD API response status {}: {}'.format(response.status, response.read().decode("utf-8")))
+            self.api_conn.close()
+            self.api_conn = None
+            return False
+
+        self.api_data = json.loads(response.read().decode("utf-8"))
         return True
     
     def sendChange(self, url, payload):
@@ -197,28 +247,31 @@ class Controller(polyinterface.Controller):
         if len(payload) < 1:
             LOGGER.error('Empty payload!')
             return False
+        self.api_conn_last_used = int(time.time())
         if self.api_conn is None:
-            LOGGER.info('sendChange: API Connection is not yet active')
+            LOGGER.info('sendChange: Attempting to open a connection to the Nest API endpoint')
             self.api_conn = http.client.HTTPSConnection("developer-api.nest.com")
         command = json.dumps(payload, separators=(',', ': '))
         headers = {'authorization': "Bearer {0}".format(self.auth_token)}
         LOGGER.debug('Sending {} to {}'.format(command, url))
         self.api_conn.request("PUT", url, command, headers)
-
         response = self.api_conn.getresponse()
 
         if response.status == 307:
             redirectLocation = urlparse(response.getheader("location"))
             LOGGER.debug("Redirected to: {}".format(redirectLocation.geturl()))
+            LOGGER.debug('Sending {} to {}'.format(command, url))
             self.api_conn = http.client.HTTPSConnection(redirectLocation.netloc)
-            self.api_conn.request("PUT", url, payload, headers)
+            self.api_conn.request("PUT", url, command, headers)
             response = self.api_conn.getresponse()
             LOGGER.debug('Response status: {}'.format(response.status))
-            if response.status != 200:
-                LOGGER.error("sendChange: Redirect with non 200 response")
+        if response.status != 200:
+            LOGGER.error("sendChange: BAD API Response {}: {}".format(response.status, response.read().decode("utf-8")))
+            return False
 
         rsp_data = json.loads(response.read().decode("utf-8"))
         LOGGER.debug('API Response: {}'.format(json.dumps(rsp_data)))
+        return True
 
     def delete(self):
         if not self.auth_token:
@@ -238,8 +291,9 @@ class Controller(polyinterface.Controller):
         auth_conn.close()
         self.auth_token = None
 
-    def _getToken(self):
+    def _getToken(self, pin = None):
         cache_file = Path(join(expanduser("~") + '/.nest_poly'))
+        auth_pin = None
 
         if 'token' not in self.polyConfig['customParams']:
             if cache_file.is_file():
@@ -268,10 +322,16 @@ class Controller(polyinterface.Controller):
         with open('server.json') as sf:
             server_data = json.load(sf)
             sf.close()
+
         if 'pin' in self.polyConfig['customParams']:
+            auth_pin = self.polyConfig['customParams']['pin']
+        elif pin is not None:
+            auth_pin = pin
+
+        if auth_pin is not None:
             LOGGER.info('PIN code obtained, attempting to get a token')
             auth_conn = http.client.HTTPSConnection("api.home.nest.com")
-            payload = "code="+self.polyConfig['customParams']['pin']+"&client_id=" + \
+            payload = "code="+auth_pin+"&client_id=" + \
                         server_data['api_client']+"&client_secret="+server_data['api_key']+ \
                         "&grant_type=authorization_code"
             headers = { 'content-type': "application/x-www-form-urlencoded" }
@@ -293,13 +353,16 @@ class Controller(polyinterface.Controller):
             else:
                 LOGGER.error('Failed to get auth_token: {}'.format(json.dumps(data)))
         else:
-            self._pinPrompt(server_data['api_client'])
+            self._pinPrompt(server_data['api_client'], server_data['api_key'])
         return False
 
-    def _pinPrompt(self, client_id):
-        LOGGER.info('Go to https://home.nest.com/login/oauth2?client_id={}&state=poly to authorize. '.format(client_id) + \
-                    'Then enter the code under the Custom Parameters section. ' + \
-                    'Create a key called "pin" with the code as the value, then restart the NodeServer.')
+    def _pinPrompt(self, client_id, client_key):
+        date = datetime.datetime.today()
+        raw_state = str(date) + client_id
+        hashed = hmac.new(client_key.encode("utf-8"), raw_state.encode("utf-8"), hashlib.sha1)
+        digest = base64.b64encode(hashed.digest())
+        self.cookie = digest.decode("utf-8")
+        LOGGER.info('Go to https://home.nest.com/login/oauth2?client_id={}&state={} to authorize. '.format(client_id, self.cookie))
 
     drivers = [ { 'driver': 'ST', 'value': 0, 'uom': 2 } ]
     commands = {'DISCOVER': discover}

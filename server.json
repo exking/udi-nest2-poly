@@ -6,7 +6,7 @@
     "install": "install.sh",
     "description": "Nest products control",
     "notice": "\"Nest\" is trademarked, see http://www.nest.com for more information. This Node Server is neither developed nor endorsed by Nest or Google.",
-    "shortPoll": "5",
+    "shortPoll": "15",
     "longPoll": "60",
     "api_client": "b924061f-427d-4274-a9a3-fa896e32998f",
     "api_key": "mZVMefT4xSjLiR4knTtkhop0X",
