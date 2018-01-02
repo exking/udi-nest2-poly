@@ -12,10 +12,7 @@ cd Nest2
 ```
 
 ### Configuration
-Once installed -  look in the `logs/debug.log` file - you will see an URL that you will need to follow in order to authorize the Node Server to access your Nest devices.
-You will be taken to the Nest web site and given an alphanumeric PIN value. Go into Polyglot web interface, open Nest2 Node Server and go into Custom Parameters. Add a key named `pin`, use PIN given by the Nest web site as a value.
-Note that PIN can be used only once, new PIN will be required if Node Server is deleted and then re-added into Polyglot.
-Restart the Node Server - it should be able to authenticate with Nest API and add nodes to ISY.
+Once installed -  look in the `logs/debug.log` file - you will see an URL that you will need to follow in order to authorize the Node Server to access your Nest devices. Please allow NodeServer about 30 seconds to complete the process after you've authorized with your Nest account. DO NOT restart the Node Server or you will have to start all over.
 
 ### Notes
 "Nest" is trademarked, see [https://www.nest.com](https://www.nest.com) for more information. This Node Server is neither developed nor endorsed by Nest or Google.
