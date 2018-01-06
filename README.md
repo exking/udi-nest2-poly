@@ -22,5 +22,8 @@ Once installed -  look in the `logs/debug.log` file - you will see an URL that y
 
 Thanks and good luck.
 
+### BUGS
+* REST Stream thread may "hung up" if internet connection goes away for some time, Node Server detects this condition (if no new events come in 30 minutes) and will log an error, but manual restart is needed to clear it up.
+
 ### History
 1. [ISYNNode](https://github.com/exking/isynnode) First version of this program designed for ISY firmware 4.X.X
