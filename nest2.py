@@ -40,6 +40,7 @@ class Controller(polyinterface.Controller):
         self.cookie = None
         self.cookie_tries = 0
         self.api_conn_last_used = int(time.time())
+        self.stream_last_update = 0
         
     def start(self):
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
@@ -98,6 +99,9 @@ class Controller(polyinterface.Controller):
             self._startStreaming()
         else:
             if self.stream_thread.isAlive():
+                if (int(time.time()) - self.stream_last_update) > 1800:
+                    LOGGER.error('No updates from streaming thread for >30 minutes, streaming hung up? Please restart the node server.')
+                    return False
                 return True
             else:
                 LOGGER.warning('REST Streaming thread died, attempting to restart.')
@@ -119,6 +123,7 @@ class Controller(polyinterface.Controller):
         client = sseclient.SSEClient(response)
         for event in client.events(): # returns a generator
             event_type = event.event
+            self.stream_last_update = int(time.time())
             if event_type == 'open': # not always received here
                 LOGGER.debug('The event stream has been opened')
             elif event_type == 'put':
