@@ -100,7 +100,8 @@ class Controller(polyinterface.Controller):
         else:
             if self.stream_thread.isAlive():
                 if (int(time.time()) - self.stream_last_update) > 1800:
-                    LOGGER.error('No updates from streaming thread for >30 minutes, streaming hung up? Please restart the node server.')
+                    LOGGER.error('No updates from streaming thread for >30 minutes, streaming hung up? Restarting the node server...')
+                    self.poly.restart()
                     return False
                 return True
             else:
