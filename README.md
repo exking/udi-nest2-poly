@@ -1,5 +1,7 @@
 # UDI Polyglot v2 Nest Interface Poly
 
+[![Build Status](https://travis-ci.org/exking/udi-nest2-poly.svg?branch=master)](https://travis-ci.org/exking/udi-nest2-poly)
+
 This Poly provides an interface between Nest Devices (Thermostats, Smoke Detectors, Cameras) and [Polyglot v2](https://github.com/Einstein42/udi-polyglotv2) server.
 
 ### Installation instructions
@@ -21,9 +23,6 @@ Once installed -  look in the `logs/debug.log` file - you will see an URL that y
 * Please report any problems on the UDI user forum.
 
 Thanks and good luck.
-
-### BUGS
-* REST Stream thread may "hung up" if internet connection goes away for some time, Node Server detects this condition (if no new events come in 30 minutes) and will log an error, but manual restart is needed to clear it up.
 
 ### History
 1. [ISYNNode](https://github.com/exking/isynnode) First version of this program designed for ISY firmware 4.X.X
