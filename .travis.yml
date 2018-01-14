@@ -1,0 +1,11 @@
+language:
+    - python
+
+python:
+    - '3.6'
+
+before_script:
+    - ./install.sh
+
+script:
+    - ./nest2.py
