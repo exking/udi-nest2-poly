@@ -204,7 +204,7 @@ class Controller(polyinterface.Controller):
 
         if 'cameras' in self.api_data['devices']:
             cams = self.api_data['devices']['cameras']
-            LOGGER.info("Found {} smoke camera(s)".format(len(cams)))
+            LOGGER.info("Found {} camera(s)".format(len(cams)))
             for cam_id, camera in cams.items():
                 address = id_2_addr(cam_id)
                 LOGGER.info("Id: {}, Name: {}".format(address, camera['name_long']))

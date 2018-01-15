@@ -627,8 +627,8 @@ class Camera(polyinterface.Node):
             self.setDriver('GV4', minutes)
 
             if 'end_time' in self.data['last_event']:
-                end_ts = zulu_2_ts(self.data['last_event']['end_time'])
-                if start_ts > end_ts or minutes < 2:
+                ts_end = zulu_2_ts(self.data['last_event']['end_time'])
+                if ts_start > ts_end or minutes < 2:
                     ''' In the middle of a new event or within a minute '''
                     self._setEventDetails()
                 else:
