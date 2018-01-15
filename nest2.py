@@ -367,7 +367,7 @@ class Controller(polyinterface.Controller):
         raw_state = str(date) + client_id
         hashed = hmac.new(client_key.encode("utf-8"), raw_state.encode("utf-8"), hashlib.sha1)
         digest = base64.b64encode(hashed.digest())
-        self.cookie = digest.decode("utf-8")
+        self.cookie = digest.decode("utf-8").replace('=','')
         LOGGER.info('Go to https://home.nest.com/login/oauth2?client_id={}&state={} to authorize. '.format(client_id, self.cookie))
 
     drivers = [ { 'driver': 'ST', 'value': 0, 'uom': 2 } ]
