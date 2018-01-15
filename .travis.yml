@@ -1,8 +1,9 @@
 language:
-    - python
-
+- python
 python:
-    - '3.6'
-
+- '3.6'
 script:
-    - ./nest2.py
+- "./nest2.py"
+notifications:
+  slack:
+    secure: ResaYwg74ybTgtbqc41yfEeCrLv3Ay7PAp8h52o+pmUoRmmsU3J+NLyBR7PQhFTI5XHawGawQw5ernZPLCC8I3RyamrQ6e/UEiy8bwgsgJPfLPSURRxCJ2JtEHw7OZaoTm//HIXF/wuNf4KPIIjYrXDATIvn9qSY5a8t69qpBzBIMjDNFEewkeFc8oJdoX3xw5/yQSATQxQ0/h2yZIdGShLIGTluG5DqKX9USXA+1JHFQNqM0zvZgzbM/2byf6dvjQNKQHcDWClKAtHhKoKbPfcofH65COqqUSV0hqjTDwZOJxla9Uc/akf6Z4bsRXsY0UiQOm8KsTpXyNO2TPpegm4+I+DvHQcDUL/vSeciXz2K2EeDUUgvI1IOqm0w6Kzq9OWLHVC7QOdyqXYCLNPikNKPFMpQ3TIHphHeu0zTlBdIA6DHtkC9zKh78LxvlQZuZIqA5reqm5Kag6y2zdUGvPJG7qtl4UhwencLCGuDwwAplKXGT4/o83bIVLZT3LcL53T+G7eVV5tyVaqYGkfe0RhkIFjY1aKAiaQSeRVgy+eOmDGDbIQsJ9PkaaSOMITV2lF85kiZjWaD2HQKHKFPFoQhI8++u8ozVn8kBR6t2h9KdB6wo5awo4U9AX6fOdODEDdjdQ3ckAT2lKYYbxJRW/19ikdyzDxUuDeBRcGIS6s=
