@@ -298,33 +298,54 @@ class Controller(polyinterface.Controller):
         self.auth_token = None
 
     def _getToken(self, pin = None):
-        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
+        ts_now = datetime.datetime.now()
         auth_pin = None
 
-        if 'token' not in self.polyConfig['customParams']:
-            if cache_file.is_file():
-                LOGGER.info('Attempting to read auth_token from ~/.nest_poly')
-                with cache_file.open() as f:
-                    cache_data = json.load(f)
-                    f.close()
-                if 'access_token' in cache_data and 'expires' in cache_data:
-                    ts_now = datetime.datetime.now()
-                    ts_exp = datetime.datetime.strptime(cache_data['expires'], '%Y-%m-%dT%H:%M:%S')
-                    if ts_now < ts_exp:
-                        self.auth_token = cache_data['access_token']
-                        LOGGER.info('Cached token valid until: {}'.format(cache_data['expires']))
-                        return True
+        ''' Try database lookup first '''
+        if 'customData' in self.polyConfig:
+            if 'access_token' in self.polyConfig['customData']:
+                LOGGER.info('Using auth token from the database')
+                if 'expires' in self.polyConfig['customData']:
+                    ts_exp = datetime.datetime.strptime(self.polyConfig['customData']['expires'], '%Y-%m-%dT%H:%M:%S')
+                    if ts_now > ts_exp:
+                        LOGGER.info('Database token has expired')
                     else:
-                        LOGGER.error('Cached token has expired')
+                        LOGGER.info('Database token valid until: {}'.format(self.polyConfig['customData']['expires']))
+                        self.auth_token = self.polyConfig['customData']['access_token']
+                        return True
                 else:
-                    LOGGER.error('Token is not found in the cache file')
+                    LOGGER.info('Token expiration time is not found in the DB, attemting to use it anyway')
+                    self.auth_token = self.polyConfig['customData']['access_token']
+                    return True
             else:
-                LOGGER.debug('Cached token is not found')
+                LOGGER.info('customData exists, but auth_token does not')
         else:
-            LOGGER.debug('Using auth_token from the database')
-            self.auth_token = self.polyConfig['customParams']['token']
-            return True
+            LOGGER.info('customData does not exist in the database')
 
+        ''' Check cache file second '''
+        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
+        if cache_file.is_file():
+            LOGGER.info('Attempting to read auth_token from ~/.nest_poly')
+            with cache_file.open() as f:
+                cache_data = json.load(f)
+                f.close()
+            if 'access_token' in cache_data and 'expires' in cache_data:
+                ts_exp = datetime.datetime.strptime(cache_data['expires'], '%Y-%m-%dT%H:%M:%S')
+                if ts_now < ts_exp:
+                    self.auth_token = cache_data['access_token']
+                    LOGGER.info('Cached token valid until: {}'.format(cache_data['expires']))
+                    ''' Save file content to DB '''
+                    self.saveCustomData(cache_data)
+                    ''' cache_file.unlink() '''
+                    return True
+                else:
+                    LOGGER.error('Cached token has expired')
+            else:
+                LOGGER.error('Token is not found in the cache file')
+        else:
+            LOGGER.debug('Cached token is not found')
+
+        ''' Could not find a saved token, see if we can retrieve one '''
         with open('server.json') as sf:
             server_data = json.load(sf)
             sf.close()
@@ -352,10 +373,8 @@ class Controller(polyinterface.Controller):
                     ts = time.time() + data['expires_in']
                     data['expires'] = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%S")
                     data.pop('expires_in', None)
-                with cache_file.open(mode='w') as cf:
-                    json.dump(data, cf)
-                    cf.close()
-                    return True
+                self.saveCustomData(data)
+                return True
             else:
                 LOGGER.error('Failed to get auth_token: {}'.format(json.dumps(data)))
         else:
