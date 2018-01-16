@@ -1,4 +1,4 @@
-polyinterface>=2.0.13
+polyinterface>=2.0.14
 urllib3>=1.22
 sseclient-py>=1.7
 certifi>=2017.11.5
