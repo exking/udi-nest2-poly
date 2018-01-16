@@ -21,6 +21,7 @@ Once installed -  look in the `logs/debug.log` file - you will see an URL that y
 * "Nest" is trademarked, see [https://www.nest.com](https://www.nest.com) for more information. This Node Server is neither developed nor endorsed by Nest or Google.
 * Please use this software as a supplement to the Nest's native controls such as schedules, etc. not as a replacement. Since API is Cloud Based - I can not guarantee that your commands will always get to the thermostats. Native schedules work regardless.
 * Make sure you have a "C" wire hooked up to the Thermostats to ensure that WiFi is not disconnected because of a low thermostat battery, providing reliable power improves command success rate.
+* Be aware of Nest API [rate limits](https://developers.nest.com/documentation/cloud/data-rate-limits)
 * Please report any problems on the UDI user forum.
 
 Thanks and good luck.
