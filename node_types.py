@@ -20,7 +20,7 @@ class Structure(polyinterface.Node):
     def start(self):
         self.update()
 
-    def query(self, command = None):
+    def query(self, command=None):
         self.update()
         self.reportDrivers()
 
@@ -68,7 +68,7 @@ class Structure(polyinterface.Node):
                     ts_end = zulu_2_ts(self.data['peak_period_end_time'])
                     ts_start = zulu_2_ts(self.data['peak_period_start_time'])
                     ts_now = datetime.datetime.utcnow()
-                    if ts_now > ts_start and ts_now < ts_end:
+                    if ts_start <= ts_now <= ts_end:
                         return True
         return False
 
@@ -189,7 +189,7 @@ class Thermostat(polyinterface.Node):
             self.state = 0
         self.setDriver('CLIHCS', self.state)
                         
-    def query(self, command = None):
+    def query(self, command=None):
         self.update()
         self.reportDrivers()
 
@@ -295,7 +295,7 @@ class Thermostat(polyinterface.Node):
     def setFan(self, command):
         if not self._checkOnline():
             return False
-        if self.data['has_fan'] == False:
+        if self.data['has_fan'] is False:
             LOGGER.error('setFan: {} has no FAN'.format(self.name))
             return False
         new_fan = int(command.get('value'))
@@ -312,7 +312,7 @@ class Thermostat(polyinterface.Node):
     def setFanTimer(self, command):
         if not self._checkOnline():
             return False
-        if self.data['has_fan'] == False:
+        if self.data['has_fan'] is False:
             LOGGER.error('setFanTimer: {} has no FAN'.format(self.name))
             return False
         new_timer = int(command.get('value'))
@@ -372,7 +372,7 @@ class Thermostat(polyinterface.Node):
         else:
             LOGGER.error('Unknown command {}'.format(cmd))
             return False
-        if validation_result == False:
+        if validation_result is False:
             LOGGER.error('Can\'t increment or decrement the setpoint beyond limits {}'.format(new_sp))
             return False
         if not self._checkLock(new_sp):
@@ -542,7 +542,7 @@ class Protect(polyinterface.Node):
     def start(self):
         self.update()
 
-    def query(self, command = None):
+    def query(self, command=None):
         self.update()
         self.reportDrivers()
 
@@ -602,13 +602,12 @@ class Camera(polyinterface.Node):
     def start(self):
         self.update()
 
-    def query(self, command = None):
+    def query(self, command=None):
         self.update()
         self.reportDrivers()
 
     def update(self):
         self.data = self.parent.data['devices']['cameras'][self.element_id]
-        end_ts = None
         if self.data['is_streaming']:
             self.setDriver('ST', 1)
         else:

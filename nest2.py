@@ -24,6 +24,7 @@ LOGGER = polyinterface.LOGGER
 
 NEST_API_URL = 'https://developer-api.nest.com'
 
+
 class Controller(polyinterface.Controller):
     def __init__(self, polyglot):
         super(Controller, self).__init__(polyglot)
@@ -32,6 +33,7 @@ class Controller(polyinterface.Controller):
         self.primary = self.address
         self.auth_conn = None
         self.api_conn = None
+        self.api_data = None
         self.auth_token = None
         self.authenticated = None
         self.stream_thread = None
@@ -68,7 +70,7 @@ class Controller(polyinterface.Controller):
         auth_pin = None
         if self.cookie_tries < 60:
             self.cookie_tries += 1
-            LOGGER.debug('Attemting to get a PIN from AWS...')
+            LOGGER.debug('Attempting to get a PIN from AWS...')
             aws_conn = http.client.HTTPSConnection("e6vcnh7oyl.execute-api.us-west-2.amazonaws.com")
             aws_conn.request("GET", "/prod/pin?state="+self.cookie)
             response = aws_conn.getresponse()
@@ -92,7 +94,7 @@ class Controller(polyinterface.Controller):
         return True
 
     def _checkStreaming(self):
-        if self.auth_token is None or self.discovery == True:
+        if self.auth_token is None or self.discovery:
             return False
         if self.stream_thread is None:
             LOGGER.debug('Starting REST Streaming thread for the first time.')
@@ -119,13 +121,13 @@ class Controller(polyinterface.Controller):
             'Accept': 'text/event-stream'
         }
         url = NEST_API_URL
-        http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',ca_certs=certifi.where())
+        http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         response = http.request('GET', url, headers=headers, preload_content=False)
         client = sseclient.SSEClient(response)
-        for event in client.events(): # returns a generator
+        for event in client.events():  # returns a generator
             event_type = event.event
             self.stream_last_update = int(time.time())
-            if event_type == 'open': # not always received here
+            if event_type == 'open':  # not always received here
                 LOGGER.debug('The event stream has been opened')
             elif event_type == 'put':
                 LOGGER.debug('The data has changed (or initial data sent)')
@@ -152,7 +154,7 @@ class Controller(polyinterface.Controller):
     def update(self):
         pass
 
-    def discover(self, command = None):
+    def discover(self, command=None):
         LOGGER.info('Discovering Nest Products...')
         if self.auth_token is None:
             return False
@@ -297,7 +299,7 @@ class Controller(polyinterface.Controller):
         auth_conn.close()
         self.auth_token = None
 
-    def _getToken(self, pin = None):
+    def _getToken(self, pin=None):
         ts_now = datetime.datetime.now()
         auth_pin = None
 
@@ -359,9 +361,9 @@ class Controller(polyinterface.Controller):
             LOGGER.info('PIN code obtained, attempting to get a token')
             auth_conn = http.client.HTTPSConnection("api.home.nest.com")
             payload = "code="+auth_pin+"&client_id=" + \
-                        server_data['api_client']+"&client_secret="+server_data['api_key']+ \
-                        "&grant_type=authorization_code"
-            headers = { 'content-type': "application/x-www-form-urlencoded" }
+                      server_data['api_client']+"&client_secret="+server_data['api_key'] + \
+                      "&grant_type=authorization_code"
+            headers = {'content-type': "application/x-www-form-urlencoded"}
             auth_conn.request("POST", "/oauth2/access_token", payload, headers)
             res = auth_conn.getresponse()
             data = json.loads(res.read().decode("utf-8"))
@@ -386,10 +388,10 @@ class Controller(polyinterface.Controller):
         raw_state = str(date) + client_id
         hashed = hmac.new(client_key.encode("utf-8"), raw_state.encode("utf-8"), hashlib.sha1)
         digest = base64.b64encode(hashed.digest())
-        self.cookie = digest.decode("utf-8").replace('=','')
+        self.cookie = digest.decode("utf-8").replace('=', '')
         LOGGER.info('Go to https://home.nest.com/login/oauth2?client_id={}&state={} to authorize. '.format(client_id, self.cookie))
 
-    drivers = [ { 'driver': 'ST', 'value': 0, 'uom': 2 } ]
+    drivers = [{'driver': 'ST', 'value': 0, 'uom': 2}]
     commands = {'DISCOVER': discover}
     id = 'NEST_CTR'
 
