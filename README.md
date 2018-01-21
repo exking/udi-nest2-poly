@@ -3,7 +3,7 @@
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/exking/udi-nest2-poly/blob/master/LICENSE)
 [![Build Status](https://travis-ci.org/exking/udi-nest2-poly.svg?branch=master)](https://travis-ci.org/exking/udi-nest2-poly)
 
-This Poly provides an interface between Nest Devices (Thermostats, Smoke Detectors, Cameras) and [Polyglot v2](https://github.com/Einstein42/udi-polyglotv2) server.
+This Poly provides an interface between Nest Devices (Thermostats, Smoke Detectors, Cameras) and [Polyglot v2](https://github.com/UniversalDevicesInc/polyglot-v2) server.
 
 ### Installation instructions
 You can install it from the Polyglot store or manually running
