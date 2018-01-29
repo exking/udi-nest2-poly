@@ -35,7 +35,6 @@ class Controller(polyinterface.Controller):
         self.api_conn = None
         self.api_data = None
         self.auth_token = None
-        self.authenticated = None
         self.stream_thread = None
         self.data = None
         self.discovery = None
@@ -46,11 +45,18 @@ class Controller(polyinterface.Controller):
         
     def start(self):
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
+        self.removeNoticesAll()
         if self._getToken():
             self.discover()
             self._checkStreaming()
             return True
         return False
+
+    def stop(self):
+        LOGGER.info('Nest NodeServer is stopping')
+        if self.api_conn is not None:
+            self.api_conn.close()
+            self.api_conn = None
 
     def longPoll(self):
         self._checkStreaming()
@@ -86,6 +92,7 @@ class Controller(polyinterface.Controller):
             if auth_pin is not None:
                 self.cookie = None
                 if self._getToken(auth_pin):
+                    self.removeNoticesAll()
                     self.discover()
                     self._checkStreaming()
         else:
@@ -389,7 +396,7 @@ class Controller(polyinterface.Controller):
         hashed = hmac.new(client_key.encode("utf-8"), raw_state.encode("utf-8"), hashlib.sha1)
         digest = base64.b64encode(hashed.digest())
         self.cookie = digest.decode("utf-8").replace('=', '')
-        LOGGER.info('Go to https://home.nest.com/login/oauth2?client_id={}&state={} to authorize. '.format(client_id, self.cookie))
+        self.addNotice('Click <a target="_blank" href="https://home.nest.com/login/oauth2?client_id={}&state={}">here</a> to link your Nest account'.format(client_id, self.cookie))
 
     drivers = [{'driver': 'ST', 'value': 0, 'uom': 2}]
     commands = {'DISCOVER': discover}
