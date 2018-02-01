@@ -8,8 +8,8 @@ NEST_MODES = {0: "off", 1: "heat", 2: "cool", 3: "heat-cool", 13: "eco"}
 NEST_AWAY = {1: 'home', 2: 'away'}
 
 class Structure(polyinterface.Node):
-    def __init__(self, parent, primary, address, name, element_id, device):
-        super().__init__(parent, primary, address, name)
+    def __init__(self, controller, primary, address, name, element_id, device):
+        super().__init__(controller, primary, address, name)
         self.name = name
         self.element_id = element_id
         self.element_prefix = '/structures/'
@@ -25,7 +25,7 @@ class Structure(polyinterface.Node):
         self.reportDrivers()
 
     def update(self):
-        self.data = self.parent.data['structures'][self.element_id]
+        self.data = self.controller.data['structures'][self.element_id]
 
         if self.data['away'] == 'away':
             self.away = True
@@ -59,7 +59,7 @@ class Structure(polyinterface.Node):
             return False
         nest_command = { 'away': NEST_AWAY[away] }
         self.setDriver('ST', away)
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def _checkRushHour(self):
         if 'rhr_enrollment' in self.data:
@@ -85,8 +85,8 @@ class Structure(polyinterface.Node):
 
 
 class Thermostat(polyinterface.Node):
-    def __init__(self, parent, primary, address, name, element_id, device):
-        super().__init__(parent, primary, address, name)
+    def __init__(self, controller, primary, address, name, element_id, device):
+        super().__init__(controller, primary, address, name)
         self.name = name
         self.data = device
         self.element_id = element_id
@@ -114,7 +114,7 @@ class Thermostat(polyinterface.Node):
         self.update()
 
     def update(self):
-        self.data = self.parent.data['devices']['thermostats'][self.element_id]
+        self.data = self.controller.data['devices']['thermostats'][self.element_id]
         self.ambient_temp = self._str2temp(self.data['ambient_temperature'+self.temp_suffix])
         self.setDriver('CLITEMP', self.ambient_temp)
         self.mode = self.data['hvac_mode']
@@ -215,7 +215,7 @@ class Thermostat(polyinterface.Node):
         else:
             LOGGER.error('CLISPH: Failed to set {} Heat Setpoint: unknown thermostat mode'.format(self.name))
             return False
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def setCool(self, command):
         if not self._checkOnline():
@@ -239,7 +239,7 @@ class Thermostat(polyinterface.Node):
         else:
             LOGGER.error('CLISPC: Failed to set {} Cool Setpoint: unknown thermostat mode'.format(self.name))
             return False
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def setRange(self, command):
         query = command.get('query')
@@ -269,7 +269,7 @@ class Thermostat(polyinterface.Node):
             self.cool_sp = new_sp_cool
             nest_command['target_temperature_high'+self.temp_suffix] = self.cool_sp
             self.setDriver('CLISPC', self.cool_sp)
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def setMode(self, command):
         if not self._checkOnline():
@@ -290,7 +290,7 @@ class Thermostat(polyinterface.Node):
         LOGGER.debug('Changing {} mode to: {}'.format(self.name, new_mode_str))
         nest_command = { 'hvac_mode': new_mode_str }
         self.setDriver('CLIMD', new_mode)
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def setFan(self, command):
         if not self._checkOnline():
@@ -307,7 +307,7 @@ class Thermostat(polyinterface.Node):
         else:
             nest_command = { 'fan_timer_active': False }
         self.setDriver('CLIFS', new_fan)
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def setFanTimer(self, command):
         if not self._checkOnline():
@@ -324,7 +324,7 @@ class Thermostat(polyinterface.Node):
             return False
         nest_command = { 'fan_timer_duration': new_timer }
         self.setDriver('GV1', new_timer)
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def setIncDec(self, command):
         if not self._checkOnline():
@@ -379,7 +379,7 @@ class Thermostat(polyinterface.Node):
             return False
         nest_command = {nest_keyword: new_sp}
         self.setDriver(driver, new_sp)
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def _checkLock(self, new_sp):
         if self.locked:
@@ -499,8 +499,8 @@ class Thermostat(polyinterface.Node):
 
 
 class ThermostatC(Thermostat):
-    def __init__(self, parent, primary, address, name, element_id, device):
-        super().__init__(parent, primary, address, name, element_id, device)
+    def __init__(self, controller, primary, address, name, element_id, device):
+        super().__init__(controller, primary, address, name, element_id, device)
         self.temp_suffix = '_c'
         self._sp_max = 32
         self._sp_min = 9
@@ -531,8 +531,8 @@ class ThermostatC(Thermostat):
 
 
 class Protect(polyinterface.Node):
-    def __init__(self, parent, primary, address, name, element_id, device):
-        super().__init__(parent, primary, address, name)
+    def __init__(self, controller, primary, address, name, element_id, device):
+        super().__init__(controller, primary, address, name)
         self.name = name
         self.element_id = element_id
         self.element_prefix = '/devices/smoke_co_alarms/'
@@ -547,7 +547,7 @@ class Protect(polyinterface.Node):
         self.reportDrivers()
 
     def update(self):
-        self.data = self.parent.data['devices']['smoke_co_alarms'][self.element_id]
+        self.data = self.controller.data['devices']['smoke_co_alarms'][self.element_id]
         self.setDriver('GV1', cosmost2num(self.data['smoke_alarm_state']))
         self.setDriver('GV2', cosmost2num(self.data['co_alarm_state']))
 
@@ -591,8 +591,8 @@ class Protect(polyinterface.Node):
 
 
 class Camera(polyinterface.Node):
-    def __init__(self, parent, primary, address, name, element_id, device):
-        super().__init__(parent, primary, address, name)
+    def __init__(self, controller, primary, address, name, element_id, device):
+        super().__init__(controller, primary, address, name)
         self.name = name
         self.element_id = element_id
         self.element_prefix = '/devices/cameras/'
@@ -607,7 +607,7 @@ class Camera(polyinterface.Node):
         self.reportDrivers()
 
     def update(self):
-        self.data = self.parent.data['devices']['cameras'][self.element_id]
+        self.data = self.controller.data['devices']['cameras'][self.element_id]
         if self.data['is_streaming']:
             self.setDriver('ST', 1)
         else:
@@ -646,7 +646,7 @@ class Camera(polyinterface.Node):
             return False
         nest_command = {'is_streaming': True}
         self.setDriver('ST', 1)
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def stopStream(self, command):
         if not self.data['is_streaming']:
@@ -654,7 +654,7 @@ class Camera(polyinterface.Node):
             return False
         nest_command = {'is_streaming': False}
         self.setDriver('ST', 0)
-        self.parent.sendChange(self.set_url, nest_command)
+        self.controller.sendChange(self.set_url, nest_command)
 
     def _clearEventDetails(self):
         self.setDriver('GV1', 0)
