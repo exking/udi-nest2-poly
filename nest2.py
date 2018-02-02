@@ -78,7 +78,12 @@ class Controller(polyinterface.Controller):
             self.cookie_tries += 1
             LOGGER.debug('Attempting to get a PIN from AWS...')
             aws_conn = http.client.HTTPSConnection("e6vcnh7oyl.execute-api.us-west-2.amazonaws.com")
-            aws_conn.request("GET", "/prod/pin?state="+self.cookie)
+            try:
+                aws_conn.request("GET", "/prod/pin?state="+self.cookie)
+            except Exception as e:
+                LOGGER.error('AWS Request Failed: {}'.format(e))
+                aws_conn.close()
+                return False
             response = aws_conn.getresponse()
             if response.status == 200:
                 aws_data = json.loads(response.read().decode("utf-8"))
@@ -129,7 +134,12 @@ class Controller(polyinterface.Controller):
         }
         url = NEST_API_URL
         http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
-        response = http.request('GET', url, headers=headers, preload_content=False)
+        try:
+            response = http.request('GET', url, headers=headers, preload_content=False)
+        except Exception as e:
+            LOGGER.error('REST Streaming Request Failed: {}'.format(e))
+            http.clear()
+            return False
         client = sseclient.SSEClient(response)
         for event in client.events():  # returns a generator
             event_type = event.event
@@ -233,14 +243,24 @@ class Controller(polyinterface.Controller):
             self.api_conn = http.client.HTTPSConnection("developer-api.nest.com")
 
         ''' re-use an existing connection '''
-        self.api_conn.request("GET", "/", headers=headers)
+        try:
+            self.api_conn.request("GET", "/", headers=headers)
+        except Exception as e:
+            LOGGER.error('Nest API Connection error: {}'.format(e))
+            self.api_conn.close()
+            return False
         response = self.api_conn.getresponse()
 
         if response.status == 307:
             redirectLocation = urlparse(response.getheader("location"))
             LOGGER.debug("Redirected to: {}".format(redirectLocation.geturl()))
             self.api_conn = http.client.HTTPSConnection(redirectLocation.netloc)
-            self.api_conn.request("GET", "/", headers=headers)
+            try:
+                self.api_conn.request("GET", "/", headers=headers)
+            except Exception as e:
+                LOGGER.error('Nest API Connection error after redirect: {}'.format(e))
+                self.api_conn.close()
+                return False
             response = self.api_conn.getresponse()
             LOGGER.debug('Response status: {}'.format(response.status))
             if response.status != 200:
@@ -269,7 +289,12 @@ class Controller(polyinterface.Controller):
         command = json.dumps(payload, separators=(',', ': '))
         headers = {'authorization': "Bearer {0}".format(self.auth_token)}
         LOGGER.debug('Sending {} to {}'.format(command, url))
-        self.api_conn.request("PUT", url, command, headers)
+        try:
+            self.api_conn.request("PUT", url, command, headers)
+        except Exception as e:
+            LOGGER.error('Nest API Connection error: {}'.format(e))
+            self.api_conn.close()
+            return False
         response = self.api_conn.getresponse()
 
         if response.status == 307:
@@ -277,7 +302,12 @@ class Controller(polyinterface.Controller):
             LOGGER.debug("Redirected to: {}".format(redirectLocation.geturl()))
             LOGGER.debug('Sending {} to {}'.format(command, url))
             self.api_conn = http.client.HTTPSConnection(redirectLocation.netloc)
-            self.api_conn.request("PUT", url, command, headers)
+            try:
+                self.api_conn.request("PUT", url, command, headers)
+            except Exception as e:
+                LOGGER.error('Nest API Connection error after redirect: {}'.format(e))
+                self.api_conn.close()
+                return False
             response = self.api_conn.getresponse()
             LOGGER.debug('Response status: {}'.format(response.status))
         if response.status != 200:
@@ -296,7 +326,12 @@ class Controller(polyinterface.Controller):
             cache_file.unlink()
         LOGGER.warning('Nest API Authentication token will now be revoked')
         auth_conn = http.client.HTTPSConnection("api.home.nest.com")
-        auth_conn.request("DELETE", "/oauth2/access_tokens/"+self.auth_token)
+        try:
+            auth_conn.request("DELETE", "/oauth2/access_tokens/"+self.auth_token)
+        except Exception as e:
+            LOGGER.error('Nest API Connection error: {}'.format(e))
+            auth_conn.close()
+            return False
         res = auth_conn.getresponse()
         if res.status == 204:
             LOGGER.info('Revoke successful')
@@ -371,7 +406,12 @@ class Controller(polyinterface.Controller):
                       server_data['api_client']+"&client_secret="+server_data['api_key'] + \
                       "&grant_type=authorization_code"
             headers = {'content-type': "application/x-www-form-urlencoded"}
-            auth_conn.request("POST", "/oauth2/access_token", payload, headers)
+            try:
+                auth_conn.request("POST", "/oauth2/access_token", payload, headers)
+            except Exception as e:
+                LOGGER.error('Nest API Connection error: {}'.format(e))
+                auth_conn.close()
+                return False
             res = auth_conn.getresponse()
             data = json.loads(res.read().decode("utf-8"))
             auth_conn.close()
