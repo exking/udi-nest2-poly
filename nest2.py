@@ -248,6 +248,7 @@ class Controller(polyinterface.Controller):
         except Exception as e:
             LOGGER.error('Nest API Connection error: {}'.format(e))
             self.api_conn.close()
+            self.api_conn = None
             return False
         response = self.api_conn.getresponse()
 
@@ -260,6 +261,7 @@ class Controller(polyinterface.Controller):
             except Exception as e:
                 LOGGER.error('Nest API Connection error after redirect: {}'.format(e))
                 self.api_conn.close()
+                self.api_conn = None
                 return False
             response = self.api_conn.getresponse()
             LOGGER.debug('Response status: {}'.format(response.status))
@@ -294,6 +296,7 @@ class Controller(polyinterface.Controller):
         except Exception as e:
             LOGGER.error('Nest API Connection error: {}'.format(e))
             self.api_conn.close()
+            self.api_conn = None
             return False
         response = self.api_conn.getresponse()
 
@@ -307,6 +310,7 @@ class Controller(polyinterface.Controller):
             except Exception as e:
                 LOGGER.error('Nest API Connection error after redirect: {}'.format(e))
                 self.api_conn.close()
+                self.api_conn = None
                 return False
             response = self.api_conn.getresponse()
             LOGGER.debug('Response status: {}'.format(response.status))
