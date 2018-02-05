@@ -163,6 +163,10 @@ class Controller(polyinterface.Controller):
                 LOGGER.error('Error occurred, such as connection closed: {}'.format(event.data))
                 client.close()
                 return False
+            elif event_type == 'cancel':
+                LOGGER.warning('Cancel event received, restarting the thread')
+                client.close()
+                return False
             else:
                 LOGGER.error('REST Streaming: Unhandled event {} {}'.format(event_type, event.data))
                 client.close()
