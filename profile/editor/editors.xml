@@ -68,6 +68,11 @@
     <range uom="25" subset="1-4" nls="SMKUI_SEL" />
   </editor>
 
+  <!-- Protect status -->
+  <editor id="SECST">
+    <range uom="25" subset="1-3" nls="SEC_SEL" />
+  </editor>
+
   <!-- Protect battery status -->
   <editor id="SMKBAT">
     <range uom="93" subset="11,13" />

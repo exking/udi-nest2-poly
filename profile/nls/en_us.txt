@@ -43,6 +43,7 @@ ST-NSTR-ST-NAME = Away
 ST-NSTR-GV0-NAME = Rush Hour
 ST-NSTR-GV1-NAME = Smoke Alarm
 ST-NSTR-GV2-NAME = CO Alarm
+ST-NSTR-GV3-NAME = Security State
 
 CMD-NSTR-SET_AWAY-NAME = Set Away To
 
@@ -75,3 +76,7 @@ SMKUI_SEL-1 = Gray
 SMKUI_SEL-2 = Green
 SMKUI_SEL-3 = Yellow
 SMKUI_SEL-4 = Red
+
+SEC_SEL-1 = N/A
+SEC_SEL-2 = Ok
+SEC_SEL-3 = Deter

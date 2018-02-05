@@ -23,3 +23,12 @@ def cosmost2num(cosmo_state):
         return 4
     else:
         return 1
+
+
+def secst2num(sec_state):
+    if sec_state == 'ok':
+        return 2
+    elif sec_state == 'deter':
+        return 3
+    else:
+        return 1

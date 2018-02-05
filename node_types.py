@@ -1,6 +1,6 @@
 import datetime
 import polyinterface
-from converters import zulu_2_ts, cosmost2num
+from converters import zulu_2_ts, cosmost2num, secst2num
 
 LOGGER = polyinterface.LOGGER
 
@@ -49,6 +49,11 @@ class Structure(polyinterface.Node):
         else:
             self.setDriver('GV2', 1)
 
+        if 'wwn_security_state' in self.data:
+            self.setDriver('GV3', secst2num(self.data['wwn_security_state']))
+        else:
+            self.setDriver('GV3', 1)
+
     def setAway(self, command):
         away = int(command.get('value'))
         if away == 2 and self.away:
@@ -75,7 +80,8 @@ class Structure(polyinterface.Node):
     drivers = [ { 'driver': 'ST', 'value': 0, 'uom': '25' },
                 { 'driver': 'GV0', 'value': 0, 'uom': '2' },
                 { 'driver': 'GV1', 'value': 0, 'uom': '25' },
-                { 'driver': 'GV2', 'value': 0, 'uom': '25' }
+                { 'driver': 'GV2', 'value': 0, 'uom': '25' },
+                { 'driver': 'GV3', 'value': 0, 'uom': '25' }
               ]
 
     commands = { 'SET_AWAY': setAway,

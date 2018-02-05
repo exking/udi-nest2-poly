@@ -107,6 +107,7 @@
       <st id="GV0" editor="bool" />
       <st id="GV1" editor="COSMOST" />
       <st id="GV2" editor="COSMOST" />
+      <st id="GV3" editor="SECST" />
     </sts>
     <cmds>
       <sends />
