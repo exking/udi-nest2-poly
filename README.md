@@ -7,7 +7,7 @@ This Poly provides an interface between Nest Devices (Thermostats, Smoke Detecto
 
 ### Installation instructions
 Make sure that you have a `zip` executable on the system, install using your OS package manager if necessarily.
-You can install it from the Polyglot store or manually running
+You can install NodeServer from the Polyglot store or manually running
 ```
 cd ~/.polyglot/nodeservers
 git clone https://github.com/exking/udi-nest2-poly.git Nest2
