@@ -23,7 +23,7 @@ Once installed -  look for the Notice on Polyglot dashboard - you will see an UR
 * Please use this software as a supplement to the Nest's native controls such as schedules, etc. not as a replacement. Since API is Cloud Based - I can not guarantee that your commands will always get to the thermostats. Native schedules work regardless.
 * Make sure you have a "C" wire hooked up to the Thermostats to ensure that WiFi is not disconnected because of a low thermostat battery, providing reliable power improves command success rate.
 * Be aware of Nest API [rate limits](https://developers.nest.com/documentation/cloud/data-rate-limits)
-* Please report any problems on the UDI user forum.
+* Please report any problems on the [UDI user forum](https://forum.universal-devices.com/topic/18655-polyglot-nest-nodeserver/).
 
 Thanks and good luck.
 

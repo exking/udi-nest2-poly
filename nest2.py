@@ -16,6 +16,7 @@ import datetime
 import hmac
 import hashlib
 import base64
+import logging
 
 from converters import id_2_addr
 from node_types import Thermostat, ThermostatC, Structure, Protect, Camera
@@ -44,6 +45,8 @@ class Controller(polyinterface.Controller):
         self.stream_last_update = 0
         
     def start(self):
+        if 'debug' not in self.polyConfig['customParams']:
+            LOGGER.setLevel(logging.INFO)
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
         self.removeNoticesAll()
         if self._getToken():
