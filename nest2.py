@@ -449,12 +449,13 @@ class Controller(polyinterface.Controller):
             auth_conn.close()
             if 'access_token' in data:
                 LOGGER.info('Received authentication token, saving...')
+                cust_data = deepcopy(self.polyConfig['customData'])
                 self.auth_token = data['access_token']
+                cust_data['access_token'] = data['access_token']
                 if 'expires_in' in data:
                     ts = time.time() + data['expires_in']
-                    data['expires'] = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%S")
-                    data.pop('expires_in', None)
-                self.saveCustomData(data)
+                    cust_data['expires'] = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%S")
+                self.saveCustomData(cust_data)
                 return True
             else:
                 LOGGER.error('Failed to get auth_token: {}'.format(json.dumps(data)))
