@@ -17,8 +17,8 @@
   <nodeDef id="NEST_TST_F" nls="NTST">
     <editors />
     <sts>
-      <st id="ST" editor="bool" />
-      <st id="CLITEMP" editor="TEMP_F" />
+      <st id="GV0" editor="bool" />
+      <st id="ST" editor="TEMP_F" />
       <st id="CLISPH" editor="SP_F" />
       <st id="CLISPC" editor="SP_F" />
       <st id="CLIMD" editor="TSTAT_MODE" />
@@ -60,8 +60,8 @@
   <nodeDef id="NEST_TST_C" nls="NTST">
     <editors />
     <sts>
-      <st id="ST" editor="bool" />
-      <st id="CLITEMP" editor="TEMP_C" />
+      <st id="GV0" editor="bool" />
+      <st id="ST" editor="TEMP_C" />
       <st id="CLISPH" editor="SP_C" />
       <st id="CLISPC" editor="SP_C" />
       <st id="CLIMD" editor="TSTAT_MODE" />

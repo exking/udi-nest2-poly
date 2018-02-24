@@ -17,6 +17,7 @@ import hmac
 import hashlib
 import base64
 import logging
+from copy import deepcopy
 
 from converters import id_2_addr
 from node_types import Thermostat, ThermostatC, Structure, Protect, Camera
@@ -43,17 +44,36 @@ class Controller(polyinterface.Controller):
         self.cookie_tries = 0
         self.api_conn_last_used = int(time.time())
         self.stream_last_update = 0
+        self.update_nodes = False
         
     def start(self):
         if 'debug' not in self.polyConfig['customParams']:
             LOGGER.setLevel(logging.INFO)
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
         self.removeNoticesAll()
+        self._checkProfile()
         if self._getToken():
             self.discover()
             self._checkStreaming()
             return True
         return False
+
+    def _checkProfile(self):
+        profile_version_file = Path('profile/version.txt')
+        if profile_version_file.is_file() and 'customData' in self.polyConfig:
+            with profile_version_file.open() as f:
+                profile_version = f.read().replace('\n', '')
+                f.close()
+            if 'prof_ver' in self.polyConfig['customData']:
+                if self.polyConfig['customData']['prof_ver'] != profile_version:
+                    self.update_nodes = True
+            else:
+                self.update_nodes = True
+            if self.update_nodes:
+                LOGGER.info('New Profile Version detected: {}, all nodes will be updated'.format(profile_version))
+                cust_data = deepcopy(self.polyConfig['customData'])
+                cust_data['prof_ver'] = profile_version
+                self.saveCustomData(cust_data)
 
     def stop(self):
         LOGGER.info('Nest NodeServer is stopping')
@@ -215,9 +235,9 @@ class Controller(polyinterface.Controller):
                 LOGGER.info("Id: {}, Name: {}".format(address, tstat['name_long']))
                 if address not in self.nodes:
                     if tstat['temperature_scale'] == 'F':
-                        self.addNode(Thermostat(self, self.address, address, tstat['name'], tstat_id, tstat))
+                        self.addNode(Thermostat(self, self.address, address, tstat['name'], tstat_id, tstat), update=self.update_nodes)
                     else:
-                        self.addNode(ThermostatC(self, self.address, address, tstat['name'], tstat_id, tstat))
+                        self.addNode(ThermostatC(self, self.address, address, tstat['name'], tstat_id, tstat), update=self.update_nodes)
 
         if 'smoke_co_alarms' in self.api_data['devices']:
             smokedets = self.api_data['devices']['smoke_co_alarms']
@@ -226,7 +246,7 @@ class Controller(polyinterface.Controller):
                 address = id_2_addr(smkdet_id)
                 LOGGER.info("Id: {}, Name: {}".format(address, smkdet['name_long']))
                 if address not in self.nodes:
-                    self.addNode(Protect(self, self.address, address, smkdet['name'], smkdet_id, smkdet))
+                    self.addNode(Protect(self, self.address, address, smkdet['name'], smkdet_id, smkdet), update=self.update_nodes)
 
         if 'cameras' in self.api_data['devices']:
             cams = self.api_data['devices']['cameras']
@@ -235,9 +255,10 @@ class Controller(polyinterface.Controller):
                 address = id_2_addr(cam_id)
                 LOGGER.info("Id: {}, Name: {}".format(address, camera['name_long']))
                 if address not in self.nodes:
-                    self.addNode(Camera(self, self.address, address, camera['name'], cam_id, camera))
+                    self.addNode(Camera(self, self.address, address, camera['name'], cam_id, camera), update=self.update_nodes)
 
         self.discovery = False
+        self.update_nodes = False
 
     def getState(self):
         if not self.auth_token:

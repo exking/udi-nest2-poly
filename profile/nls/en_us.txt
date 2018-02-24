@@ -16,8 +16,8 @@ ND-NEST_SMK-ICON = SmokeSensor
 ND-NEST_CAM-NAME = Camera
 ND-NEST_CAM-ICON = MotionSensor
 
-ST-NTST-ST-NAME = Online
-ST-NTST-CLITEMP-NAME = Ambient Temperature
+ST-NTST-GV0-NAME = Online
+ST-NTST-ST-NAME = Ambient Temperature
 ST-NTST-CLISPH-NAME = Heat SetPoint
 ST-NTST-CLISPC-NAME = Cool SetPoint
 ST-NTST-CLIMD-NAME = Mode

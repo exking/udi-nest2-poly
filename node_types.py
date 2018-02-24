@@ -122,7 +122,7 @@ class Thermostat(polyinterface.Node):
     def update(self):
         self.data = self.controller.data['devices']['thermostats'][self.element_id]
         self.ambient_temp = self._str2temp(self.data['ambient_temperature'+self.temp_suffix])
-        self.setDriver('CLITEMP', self.ambient_temp)
+        self.setDriver('ST', self.ambient_temp)
         self.mode = self.data['hvac_mode']
         self.sp = self._str2temp(self.data['target_temperature'+self.temp_suffix])
         if self.mode != 'eco':
@@ -179,10 +179,10 @@ class Thermostat(polyinterface.Node):
             self.setDriver('CLIFS', 0)
         
         if self.data['is_online']:
-            self.setDriver('ST', 1)
+            self.setDriver('GV0', 1)
             self.online = True
         else:
-            self.setDriver('ST', 0)
+            self.setDriver('GV0', 0)
             self.online = False
                         
         if self.data['hvac_state'] == 'cooling':
@@ -483,13 +483,13 @@ class Thermostat(polyinterface.Node):
     drivers = [ { 'driver': 'CLIMD', 'value': 0, 'uom': '67' },
                 { 'driver': 'CLISPC', 'value': 0, 'uom': '17' },
                 { 'driver': 'CLISPH', 'value': 0, 'uom': '17' },
-                { 'driver': 'CLITEMP', 'value': 0, 'uom': '17' },                
+                { 'driver': 'ST', 'value': 0, 'uom': '17' },
                 { 'driver': 'CLIFS', 'value': 0, 'uom': '68' },
                 { 'driver': 'CLIHUM', 'value': 0, 'uom': '22' },
                 { 'driver': 'CLIHCS', 'value': 0, 'uom': '66' },
                 { 'driver': 'GV1', 'value': 0, 'uom': '45' },
                 { 'driver': 'GV2', 'value': 0, 'uom': '45' },
-                { 'driver': 'ST', 'value': 0, 'uom': '2' }]
+                { 'driver': 'GV0', 'value': 0, 'uom': '2' }]
 
     commands = { 'CLIMD': setMode,
                  'CLIFS': setFan,
@@ -515,13 +515,13 @@ class ThermostatC(Thermostat):
     drivers = [ { 'driver': 'CLIMD', 'value': 0, 'uom': '67' },
                 { 'driver': 'CLISPC', 'value': 0, 'uom': '4' },
                 { 'driver': 'CLISPH', 'value': 0, 'uom': '4' },
-                { 'driver': 'CLITEMP', 'value': 0, 'uom': '4' },                
+                { 'driver': 'ST', 'value': 0, 'uom': '4' },
                 { 'driver': 'CLIFS', 'value': 0, 'uom': '68' },
                 { 'driver': 'CLIHUM', 'value': 0, 'uom': '22' },
                 { 'driver': 'CLIHCS', 'value': 0, 'uom': '66' },
                 { 'driver': 'GV1', 'value': 0, 'uom': '45' },
                 { 'driver': 'GV2', 'value': 0, 'uom': '45' },
-                { 'driver': 'ST', 'value': 0, 'uom': '2' }]
+                { 'driver': 'GV0', 'value': 0, 'uom': '2' }]
 
     commands = { 'CLIMD': Thermostat.setMode,
                  'CLIFS': Thermostat.setFan,
