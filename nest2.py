@@ -45,6 +45,7 @@ class Controller(polyinterface.Controller):
         self.api_conn_last_used = int(time.time())
         self.stream_last_update = 0
         self.update_nodes = False
+        self.profile_version = None
         
     def start(self):
         if 'debug' not in self.polyConfig['customParams']:
@@ -62,17 +63,17 @@ class Controller(polyinterface.Controller):
         profile_version_file = Path('profile/version.txt')
         if profile_version_file.is_file() and 'customData' in self.polyConfig:
             with profile_version_file.open() as f:
-                profile_version = f.read().replace('\n', '')
+                self.profile_version = f.read().replace('\n', '')
                 f.close()
             if 'prof_ver' in self.polyConfig['customData']:
-                if self.polyConfig['customData']['prof_ver'] != profile_version:
+                if self.polyConfig['customData']['prof_ver'] != self.profile_version:
                     self.update_nodes = True
             else:
                 self.update_nodes = True
             if self.update_nodes:
-                LOGGER.info('New Profile Version detected: {}, all nodes will be updated'.format(profile_version))
+                LOGGER.info('New Profile Version detected: {}, all nodes will be updated'.format(self.profile_version))
                 cust_data = deepcopy(self.polyConfig['customData'])
-                cust_data['prof_ver'] = profile_version
+                cust_data['prof_ver'] = self.profile_version
                 self.saveCustomData(cust_data)
 
     def stop(self):
@@ -411,6 +412,7 @@ class Controller(polyinterface.Controller):
                     self.auth_token = cache_data['access_token']
                     LOGGER.info('Cached token valid until: {}'.format(cache_data['expires']))
                     ''' Save file content to DB '''
+                    cache_data['prof_ver'] = self.profile_version
                     self.saveCustomData(cache_data)
                     ''' cache_file.unlink() '''
                     return True
@@ -455,6 +457,7 @@ class Controller(polyinterface.Controller):
                 if 'expires_in' in data:
                     ts = time.time() + data['expires_in']
                     cust_data['expires'] = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%S")
+                cust_data['prof_ver'] = self.profile_version
                 self.saveCustomData(cust_data)
                 return True
             else:
