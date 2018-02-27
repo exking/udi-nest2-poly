@@ -88,4 +88,9 @@
     <range uom="45" min="0" max="44640" />
   </editor>
 
+  <!-- Lock mode -->
+  <editor id="SEC_MODE">
+    <range uom="84" subset="0,1" />
+  </editor>
+
 </editors>

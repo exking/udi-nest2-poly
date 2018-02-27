@@ -25,6 +25,7 @@
       <st id="CLIFS" editor="FAN_MODE" />
       <st id="CLIHUM" editor="TSTAT_HUM" />
       <st id="CLIHCS" editor="TSTAT_HCS" />
+      <st id="SECMD" editor="SEC_MODE" />
       <st id="GV1" editor="FAN_TIMER" />
       <st id="GV2" editor="TOTARGET" />
     </sts>
@@ -68,6 +69,7 @@
       <st id="CLIFS" editor="FAN_MODE" />
       <st id="CLIHUM" editor="TSTAT_HUM" />
       <st id="CLIHCS" editor="TSTAT_HCS" />
+      <st id="SECMD" editor="SEC_MODE" />
       <st id="GV1" editor="FAN_TIMER" />
       <st id="GV2" editor="TOTARGET" />
     </sts>

@@ -24,6 +24,7 @@ ST-NTST-CLIMD-NAME = Mode
 ST-NTST-CLIFS-NAME = Fan Mode
 ST-NTST-CLIHUM-NAME = Humidity
 ST-NTST-CLIHCS-NAME = Heat/Cool State
+ST-NTST-SECMD-NAME = Lock state
 ST-NTST-GV1-NAME = Fan Timer
 ST-NTST-GV2-NAME = Time to target
 

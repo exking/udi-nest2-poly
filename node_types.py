@@ -136,8 +136,10 @@ class Thermostat(polyinterface.Node):
         self.lock_min = self._str2temp(self.data['locked_temp_min'+self.temp_suffix])
         if self.data['is_locked']:
             self.locked = True
+            self.setDriver('SECMD', 1)
         else:
             self.locked = False
+            self.setDriver('SECMD', 0)
 
         if self.data['is_using_emergency_heat']:
             self.emerg_heat = True
@@ -170,21 +172,21 @@ class Thermostat(polyinterface.Node):
             self.setDriver('CLIMD', 0)
             self.setDriver('CLISPH', self.heat_sp)
             self.setDriver('CLISPC', self.cool_sp)
-        
+
         if self.data['fan_timer_active']:
             self.fan_mode = 1
             self.setDriver('CLIFS', 1)
         else:
             self.fan_mode = 0
             self.setDriver('CLIFS', 0)
-        
+
         if self.data['is_online']:
             self.setDriver('GV0', 1)
             self.online = True
         else:
             self.setDriver('GV0', 0)
             self.online = False
-                        
+
         if self.data['hvac_state'] == 'cooling':
             self.state = 2
         elif self.data['hvac_state'] == 'heating':
@@ -194,7 +196,7 @@ class Thermostat(polyinterface.Node):
         else:
             self.state = 0
         self.setDriver('CLIHCS', self.state)
-                        
+
     def query(self, command=None):
         self.update()
         self.reportDrivers()
@@ -487,6 +489,7 @@ class Thermostat(polyinterface.Node):
                 { 'driver': 'CLIFS', 'value': 0, 'uom': '68' },
                 { 'driver': 'CLIHUM', 'value': 0, 'uom': '22' },
                 { 'driver': 'CLIHCS', 'value': 0, 'uom': '66' },
+                { 'driver': 'SECMD', 'value': 0, 'uom': '84' },
                 { 'driver': 'GV1', 'value': 0, 'uom': '45' },
                 { 'driver': 'GV2', 'value': 0, 'uom': '45' },
                 { 'driver': 'GV0', 'value': 0, 'uom': '2' }]
@@ -519,6 +522,7 @@ class ThermostatC(Thermostat):
                 { 'driver': 'CLIFS', 'value': 0, 'uom': '68' },
                 { 'driver': 'CLIHUM', 'value': 0, 'uom': '22' },
                 { 'driver': 'CLIHCS', 'value': 0, 'uom': '66' },
+                { 'driver': 'SECMD', 'value': 0, 'uom': '84' },
                 { 'driver': 'GV1', 'value': 0, 'uom': '45' },
                 { 'driver': 'GV2', 'value': 0, 'uom': '45' },
                 { 'driver': 'GV0', 'value': 0, 'uom': '2' }]
