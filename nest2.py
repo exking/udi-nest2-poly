@@ -46,7 +46,8 @@ class Controller(polyinterface.Controller):
         self.stream_last_update = 0
         self.update_nodes = False
         self.profile_version = None
-        
+        self.rediscovery_needed = False
+
     def start(self):
         if 'debug' not in self.polyConfig['customParams']:
             LOGGER.setLevel(logging.INFO)
@@ -54,9 +55,11 @@ class Controller(polyinterface.Controller):
         self.removeNoticesAll()
         self._checkProfile()
         if self._getToken():
-            self.discover()
-            self._checkStreaming()
-            return True
+            if self.discover():
+                self._checkStreaming()
+                return True
+            else:
+                self.rediscovery_needed = True
         return False
 
     def _checkProfile(self):
@@ -83,6 +86,11 @@ class Controller(polyinterface.Controller):
             self.api_conn = None
 
     def longPoll(self):
+        if self.rediscovery_needed:
+            if self.discover():
+                self.rediscovery_needed = False
+            else:
+                return False
         self._checkStreaming()
         '''
         if self.api_conn is not None:
@@ -203,12 +211,11 @@ class Controller(polyinterface.Controller):
         LOGGER.info('Discovering Nest Products...')
         if self.auth_token is None:
             return False
-        
+
         if not self.getState():
             return False
 
         self.discovery = True
-        
         ''' Copy initial data if REST Streaming is not active yet '''
         if self.data is None:
             self.data = self.api_data
@@ -260,6 +267,7 @@ class Controller(polyinterface.Controller):
 
         self.discovery = False
         self.update_nodes = False
+        return True
 
     def getState(self):
         if not self.auth_token:
