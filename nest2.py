@@ -63,13 +63,17 @@ class Controller(polyinterface.Controller):
         return False
 
     def _checkProfile(self):
+        LOGGER.debug('Checking profile version')
         profile_version_file = Path('profile/version.txt')
         if profile_version_file.is_file() and 'customData' in self.polyConfig:
             with profile_version_file.open() as f:
                 self.profile_version = f.read().replace('\n', '')
+                LOGGER.debug('version.txt: {}'.format(self.profile_version))
                 f.close()
             if 'prof_ver' in self.polyConfig['customData']:
+                LOGGER.debug('customData prof_ver: {}'.format(self.polyConfig['customData']['prof_ver']))
                 if self.polyConfig['customData']['prof_ver'] != self.profile_version:
+                    LOGGER.debug('Profile version does not match')
                     self.update_nodes = True
             else:
                 self.update_nodes = True
