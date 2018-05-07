@@ -46,7 +46,7 @@
         </cmd>
         <cmd id="SET_TIMER">
           <p id="" editor="FAN_TIMER" init="GV1" />
-        </cmd>        
+        </cmd>
         <cmd id="BRT" />
         <cmd id="DIM" />
         <cmd id="QUERY" />
