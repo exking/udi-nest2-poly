@@ -50,7 +50,7 @@
   </editor>
 
   <editor id="TSTAT_HUM">
-    <range uom="22" min="0" max="100" />
+    <range uom="22" min="0" max="100" step="5" />
   </editor>
 
   <!-- Home/Away Selector -->
