@@ -148,7 +148,7 @@ class Controller(polyinterface.Controller):
             LOGGER.debug('Starting REST Streaming thread for the first time.')
             self._startStreaming()
         else:
-            if self.stream_thread.isAlive():
+            if self.stream_thread.is_alive():
                 if (int(time.time()) - self.stream_last_update) > 1800:
                     LOGGER.error('No updates from streaming thread for >30 minutes, streaming hung up? Restarting the node server...')
                     self.poly.restart()
