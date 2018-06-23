@@ -207,6 +207,7 @@ class Controller(polyinterface.Controller):
                 LOGGER.error('REST Streaming: Unhandled event {} {}'.format(event_type, event.data))
                 client.close()
                 return False
+        LOGGER.warning('Streaming Process exited')
 
     def update(self):
         pass
