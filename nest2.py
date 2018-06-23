@@ -169,9 +169,10 @@ class Controller(polyinterface.Controller):
             'Accept': 'text/event-stream'
         }
         url = NEST_API_URL
+        retries = urllib3.util.retry.Retry(remove_headers_on_redirect=[])
         http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         try:
-            response = http.request('GET', url, headers=headers, preload_content=False)
+            response = http.request('GET', url, headers=headers, preload_content=False, retries=retries)
         except Exception as e:
             LOGGER.error('REST Streaming Request Failed: {}'.format(e))
             http.clear()
