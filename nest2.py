@@ -3,7 +3,6 @@
 import polyinterface
 import sys
 import json
-from os.path import join, expanduser
 from pathlib import Path
 import http.client
 from threading import Thread
@@ -29,7 +28,7 @@ NEST_API_URL = 'https://developer-api.nest.com'
 
 class Controller(polyinterface.Controller):
     def __init__(self, polyglot):
-        super(Controller, self).__init__(polyglot)
+        super().__init__(polyglot)
         self.name = 'Nest Controller'
         self.address = 'nestctrl'
         self.primary = self.address
@@ -368,7 +367,7 @@ class Controller(polyinterface.Controller):
     def delete(self):
         if not self.auth_token:
             return True
-        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
+        cache_file = Path(str(Path.home()) + '/.nest_poly')
         if cache_file.is_file():
             cache_file.unlink()
         LOGGER.warning('Nest API Authentication token will now be revoked')
@@ -414,7 +413,7 @@ class Controller(polyinterface.Controller):
             LOGGER.info('customData does not exist in the database')
 
         ''' Check cache file second '''
-        cache_file = Path(join(expanduser("~") + '/.nest_poly'))
+        cache_file = Path(str(Path.home()) + '/.nest_poly')
         if cache_file.is_file():
             LOGGER.info('Attempting to read auth_token from ~/.nest_poly')
             with cache_file.open() as f:
