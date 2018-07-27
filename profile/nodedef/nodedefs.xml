@@ -30,7 +30,10 @@
       <st id="GV2" editor="TOTARGET" />
     </sts>
     <cmds>
-      <sends />
+      <sends>
+	<cmd id="DON" />
+	<cmd id="DOF" />
+      </sends>
       <accepts>
         <cmd id="CLISPH">
           <p id="" editor="SP_F" init="CLISPH" />
@@ -74,7 +77,10 @@
       <st id="GV2" editor="TOTARGET" />
     </sts>
     <cmds>
-      <sends />
+      <sends>
+	<cmd id="DON" />
+	<cmd id="DOF" />
+      </sends>
       <accepts>
         <cmd id="CLISPH">
           <p id="" editor="SP_C" init="CLISPH" />

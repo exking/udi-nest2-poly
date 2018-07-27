@@ -188,12 +188,20 @@ class Thermostat(polyinterface.Node):
             self.online = False
 
         if self.data['hvac_state'] == 'cooling':
+            if self.state == 0:
+                self.reportCmd('DON')
             self.state = 2
         elif self.data['hvac_state'] == 'heating':
+            if self.state == 0:
+                self.reportCmd('DON')
             self.state = 1
         elif self.data['fan_timer_active']:
+            if self.state == 0:
+                self.reportCmd('DON')
             self.state = 3
         else:
+            if self.state != 0:
+                self.reportCmd('DOF')
             self.state = 0
         self.setDriver('CLIHCS', self.state)
 
