@@ -58,7 +58,7 @@ class Controller(polyinterface.Controller):
         if 'debug' not in self.polyConfig['customParams']:
             LOGGER.setLevel(logging.INFO)
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
-        if self.cloud:
+        if self._cloud:
             LOGGER.info('Cloud environment detected, received Init: {}'.format(self.poly.init))
         self.removeNoticesAll()
         self._checkProfile()
