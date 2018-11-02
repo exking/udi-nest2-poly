@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
-import polyinterface
+CLOUD = False
+
+try:
+    import polyinterface
+except ImportError:
+    import pgc_interface as polyinterface
+    CLOUD = True
 import sys
 import json
 from pathlib import Path
@@ -46,11 +52,14 @@ class Controller(polyinterface.Controller):
         self.update_nodes = False
         self.profile_version = None
         self.rediscovery_needed = False
+        self._cloud = CLOUD
 
     def start(self):
         if 'debug' not in self.polyConfig['customParams']:
             LOGGER.setLevel(logging.INFO)
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
+        if self.cloud:
+            LOGGER.info('Cloud environment detected, received Init: {}'.format(self.poly.init))
         self.removeNoticesAll()
         self._checkProfile()
         if self._getToken():

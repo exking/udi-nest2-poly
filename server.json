@@ -4,6 +4,7 @@
     "type": "python3",
     "executable": "nest2.py",
     "install": "install.sh",
+    "install_cloud": "install_cloud.sh",
     "description": "Nest products (Thermostats, Cameras, Smoke/CO detectors) control",
     "notice": "\"Nest\" is trademarked, see http://www.nest.com for more information. This Node Server is neither developed nor endorsed by Nest or Google.",
     "shortPoll": "15",
