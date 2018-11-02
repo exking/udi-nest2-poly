@@ -1,5 +1,8 @@
 import datetime
-import polyinterface
+try:
+    import polyinterface
+except ImportError:
+    import pgc_interface as polyinterface
 from converters import zulu_2_ts, cosmost2num, secst2num
 
 LOGGER = polyinterface.LOGGER
