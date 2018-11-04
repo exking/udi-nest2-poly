@@ -59,7 +59,7 @@ class Controller(polyinterface.Controller):
             LOGGER.setLevel(logging.INFO)
         LOGGER.info('Starting Nest2 Polyglot v2 NodeServer')
         if self._cloud:
-            LOGGER.info('Cloud environment detected, received Init: {}'.format(self.poly.init))
+            LOGGER.info('Cloud environment detected.')
         self.removeNoticesAll()
         self._checkProfile()
         if self._getToken():
@@ -202,6 +202,8 @@ class Controller(polyinterface.Controller):
             elif event_type == 'auth_revoked':
                 LOGGER.warning('The API authorization has been revoked. {}'.format(event.data))
                 self.auth_token = None
+                cust_data = {}
+                self.saveCustomData(cust_data)
                 client.close()
                 return False
             elif event_type == 'error':
@@ -459,9 +461,15 @@ class Controller(polyinterface.Controller):
                 LOGGER.error('Unable to find Client Secret in the init data')
                 return False
         else:
-            with open('server.json') as sf:
-                server_data = json.load(sf)
-                sf.close()
+            if 'api_client' in self.polyConfig['customParams'] and 'api_key' in self.polyConfig['customParams']:
+                server_data = {}
+                server_data['api_client'] = self.polyConfig['customParams']['api_client']
+                server_data['api_key'] = self.polyConfig['customParams']['api_key']
+                LOGGER.info('Using Nest API credentials from the customParams')
+            else:
+                with open('server.json') as sf:
+                    server_data = json.load(sf)
+                    sf.close()
 
         if 'pin' in self.polyConfig['customParams']:
             auth_pin = self.polyConfig['customParams']['pin']
