@@ -516,7 +516,11 @@ class Controller(polyinterface.Controller):
     def oauth(self, oauth):
         LOGGER.info('OAUTH Received: {}'.format(oauth))
         if 'code' in oauth:
-            self._getToken(pin=oauth['code'])
+            if self._getToken(oauth['code']):
+                self.removeNoticesAll()
+                self.discover()
+                self._checkStreaming()
+
 
     drivers = [{'driver': 'ST', 'value': 0, 'uom': 2}]
     commands = {'DISCOVER': discover}
