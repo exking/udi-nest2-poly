@@ -114,7 +114,7 @@ class Controller(polyinterface.Controller):
         return True
 
     def shortPoll(self):
-        if self.auth_token is not None or self.cookie is None:
+        if self.auth_token is not None or self.cookie is None or self._cloud:
             return True
         ''' Only try 60 times, shuld be about 15 minutes '''
         auth_pin = None
@@ -446,9 +446,22 @@ class Controller(polyinterface.Controller):
             LOGGER.debug('Cached token is not found')
 
         ''' Could not find a saved token, see if we can retrieve one '''
-        with open('server.json') as sf:
-            server_data = json.load(sf)
-            sf.close()
+        if self._cloud:
+            server_data = {}
+            if 'clientId' in self.poly.init['oauth']:
+               server_data['api_client'] =  self.poly.init['oauth']['clientId']
+            else:
+                LOGGER.error('Unable to find Client ID in the init data')
+                return False
+            if 'clientSecret' in self.poly.init['oauth']:
+               server_data['api_key'] =  self.poly.init['oauth']['clientSecret']
+            else:
+                LOGGER.error('Unable to find Client Secret in the init data')
+                return False
+        else:
+            with open('server.json') as sf:
+                server_data = json.load(sf)
+                sf.close()
 
         if 'pin' in self.polyConfig['customParams']:
             auth_pin = self.polyConfig['customParams']['pin']
@@ -489,12 +502,20 @@ class Controller(polyinterface.Controller):
         return False
 
     def _pinPrompt(self, client_id, client_key):
-        date = datetime.datetime.today()
-        raw_state = str(date) + client_id
-        hashed = hmac.new(client_key.encode("utf-8"), raw_state.encode("utf-8"), hashlib.sha1)
-        digest = base64.b64encode(hashed.digest())
-        self.cookie = digest.decode("utf-8").replace('=', '')
+        if self._cloud:
+            self.cookie=self.poly.init['worker']
+        else:
+            date = datetime.datetime.today()
+            raw_state = str(date) + client_id
+            hashed = hmac.new(client_key.encode("utf-8"), raw_state.encode("utf-8"), hashlib.sha1)
+            digest = base64.b64encode(hashed.digest())
+            self.cookie = digest.decode("utf-8").replace('=', '')
         self.addNotice('Click <a target="_blank" href="https://home.nest.com/login/oauth2?client_id={}&state={}">here</a> to link your Nest account'.format(client_id, self.cookie))
+
+    def oauth(self, oauth):
+        LOGGER.info('OAUTH Received: {}'.format(oauth))
+        if 'pin' in oauth:
+            self._getToken(pin=oauth['pin'])
 
     drivers = [{'driver': 'ST', 'value': 0, 'uom': 2}]
     commands = {'DISCOVER': discover}
