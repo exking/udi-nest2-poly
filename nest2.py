@@ -530,7 +530,7 @@ class Controller(polyinterface.Controller):
                 self._checkStreaming()
 
 
-    drivers = [{'driver': 'ST', 'value': 0, 'uom': 2}]
+    drivers = [{'driver': 'ST', 'value': 1, 'uom': 2}]
     commands = {'DISCOVER': discover}
     id = 'NEST_CTR'
 
