@@ -512,14 +512,13 @@ class Controller(polyinterface.Controller):
     def _pinPrompt(self, client_id, client_key):
         if self._cloud:
             self.cookie=self.poly.init['worker']
-            self.addNotice({'myNotice': 'Click <a target="_blank" href="https://home.nest.com/login/oauth2?client_id={}&state={}">here</a> to link your Nest account'.format(client_id, self.cookie)})
         else:
             date = datetime.datetime.today()
             raw_state = str(date) + client_id
             hashed = hmac.new(client_key.encode("utf-8"), raw_state.encode("utf-8"), hashlib.sha1)
             digest = base64.b64encode(hashed.digest())
             self.cookie = digest.decode("utf-8").replace('=', '')
-            self.addNotice('Click <a target="_blank" href="https://home.nest.com/login/oauth2?client_id={}&state={}">here</a> to link your Nest account'.format(client_id, self.cookie))
+        self.addNotice({'myNotice': 'Click <a target="_blank" href="https://home.nest.com/login/oauth2?client_id={}&state={}">here</a> to link your Nest account'.format(client_id, self.cookie)})
 
     def oauth(self, oauth):
         LOGGER.info('OAUTH Received: {}'.format(oauth))
