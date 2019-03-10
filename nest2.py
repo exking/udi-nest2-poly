@@ -303,7 +303,13 @@ class Controller(polyinterface.Controller):
             self.api_conn.close()
             self.api_conn = None
             return False
-        response = self.api_conn.getresponse()
+        try:
+            response = self.api_conn.getresponse()
+        except Exception as e:
+            LOGGER.error('Nest API Connection Response error: {}'.format(e))
+            self.api_conn.close()
+            self.api_conn = None
+            return False
 
         if response.status == 307:
             redirectLocation = urlparse(response.getheader("location"))
