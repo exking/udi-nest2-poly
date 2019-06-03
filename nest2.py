@@ -48,7 +48,7 @@ class Controller(polyinterface.Controller):
         self.cookie = None
         self.cookie_tries = 0
         self.api_conn_last_used = int(time.time())
-        self.stream_last_update = 0
+        self.stream_last_update = int(time.time())
         self.update_nodes = False
         self.profile_version = None
         self.rediscovery_needed = False
